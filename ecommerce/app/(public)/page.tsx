@@ -5,13 +5,14 @@ import { FilterButtons } from '@/components/public/FilterButtons'
 import { t } from '@/lib/i18n'
 
 interface HomePageProps {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; search?: string }>
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const supabase = createServerClient()
   const params = await searchParams
   const category = params?.category
+  const search = params?.search
   
   // Build query
   let query = supabase
@@ -21,6 +22,11 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   
   if (category && category !== 'all') {
     query = query.eq('category', category)
+  }
+  
+  // Add search filter (contains/ilike)
+  if (search && search.trim()) {
+    query = query.ilike('title', `%${search.trim()}%`)
   }
   
   let products = null
