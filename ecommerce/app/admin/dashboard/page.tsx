@@ -1,9 +1,55 @@
 import { getUser } from '@/lib/supabase/auth'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { t } from '@/lib/i18n'
 import { Package, ShoppingCart, DollarSign, AlertCircle } from 'lucide-react'
 
+interface DashboardStats {
+  totalSales: number
+  pendingOrders: number
+  totalProducts: number
+  lowStockCount: number
+}
+
+async function getDashboardStats(): Promise<DashboardStats> {
+  const supabase = createAdminClient()
+
+  // Get total sales (sum of all paid orders)
+  // Workaround: Supabase types issue (see bugs_to_fix.md)
+  const { data: salesData } = await (supabase
+    .from('orders') as any)
+    .select('total_amount')
+    .in('status', ['paid', 'processing', 'shipped', 'delivered'])
+
+  const totalSales = salesData?.reduce((sum: number, order: any) => sum + order.total_amount, 0) || 0
+
+  // Get pending orders count
+  const { count: pendingCount } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'pending')
+
+  // Get total products count
+  const { count: productsCount } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+
+  // Get low stock alerts (stock < 5)
+  const { count: lowStockCount } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .lt('stock', 5)
+
+  return {
+    totalSales,
+    pendingOrders: pendingCount || 0,
+    totalProducts: productsCount || 0,
+    lowStockCount: lowStockCount || 0,
+  }
+}
+
 export default async function AdminDashboardPage() {
   const user = await getUser()
+  const stats = await getDashboardStats()
 
   return (
     <div>
@@ -30,10 +76,10 @@ export default async function AdminDashboardPage() {
             {t('admin.totalSales')}
           </h3>
           <p className="text-2xl font-bold text-gray-900">
-            $0.00
+            ${stats.totalSales.toFixed(2)}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            {t('admin.comingSoon')}
+            All time
           </p>
         </div>
 
@@ -48,10 +94,10 @@ export default async function AdminDashboardPage() {
             {t('admin.pendingOrders')}
           </h3>
           <p className="text-2xl font-bold text-gray-900">
-            0
+            {stats.pendingOrders}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            {t('admin.comingSoon')}
+            Awaiting payment
           </p>
         </div>
 
@@ -66,10 +112,10 @@ export default async function AdminDashboardPage() {
             {t('admin.totalProducts')}
           </h3>
           <p className="text-2xl font-bold text-gray-900">
-            0
+            {stats.totalProducts}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            {t('admin.comingSoon')}
+            In inventory
           </p>
         </div>
 
@@ -84,10 +130,10 @@ export default async function AdminDashboardPage() {
             {t('admin.lowStockAlerts')}
           </h3>
           <p className="text-2xl font-bold text-gray-900">
-            0
+            {stats.lowStockCount}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            {t('admin.comingSoon')}
+            Stock {'<'} 5 units
           </p>
         </div>
       </div>
