@@ -96,7 +96,8 @@ export const useCartStore = create<CartStore>()(
       }
     }),
     {
-      name: 'cart-storage' // LocalStorage key
+      name: 'cart-storage', // LocalStorage key
+      skipHydration: true, // Skip hydration to prevent SSR mismatch
     }
   )
 )

@@ -4,9 +4,66 @@ import { ProductCard } from '@/components/public/ProductCard'
 import { FilterButtons } from '@/components/public/FilterButtons'
 import { t } from '@/lib/i18n'
 import type { Product } from '@/types/models'
+import type { Metadata } from 'next'
+import { generateProductListJsonLd, generateWebSiteJsonLd, JsonLd } from '@/lib/seo/structured-data'
 
 interface HomePageProps {
   searchParams: Promise<{ category?: string; search?: string }>
+}
+
+// Category metadata mapping
+const categoryMetadata: Record<string, { title: string; description: string }> = {
+  electronics: {
+    title: 'Electronics - Gadgets, Phones & Tech',
+    description: 'Shop the latest electronics, smartphones, laptops, and tech gadgets. Fast shipping and secure checkout.',
+  },
+  clothing: {
+    title: 'Clothing & Fashion - Latest Trends',
+    description: 'Discover trendy clothing and fashion items for men and women. Quality fabrics and fast delivery.',
+  },
+  home: {
+    title: 'Home & Living - Furniture & Decor',
+    description: 'Shop home goods, furniture, and decor to transform your living space. Quality products at great prices.',
+  },
+  all: {
+    title: 'All Products - Shop Online',
+    description: 'Browse our complete catalog of quality products. Electronics, clothing, home goods and more.',
+  },
+}
+
+// Generate metadata dynamically based on category/search
+export async function generateMetadata({ searchParams }: HomePageProps): Promise<Metadata> {
+  const params = await searchParams
+  const category = params?.category || 'all'
+  const search = params?.search
+
+  // If searching, customize metadata
+  if (search) {
+    return {
+      title: `Search: ${search}`,
+      description: `Search results for "${search}". Find quality products with fast shipping.`,
+      robots: {
+        index: true,
+        follow: true,
+      },
+    }
+  }
+
+  // Category-specific metadata
+  const meta = categoryMetadata[category] || categoryMetadata.all
+
+  return {
+    title: meta.title,
+    description: meta.description,
+    openGraph: {
+      title: meta.title,
+      description: meta.description,
+    },
+    twitter: {
+      title: meta.title,
+      description: meta.description,
+    },
+  }
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
@@ -73,11 +130,25 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     }
   }
 
+  // Generate structured data for SEO
+  const productListJsonLd = products && products.length > 0
+    ? generateProductListJsonLd(
+        products,
+        category ? categoryMetadata[category]?.title || 'Products' : 'All Products'
+      )
+    : null
+
+  const webSiteJsonLd = generateWebSiteJsonLd()
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Structured Data for SEO */}
+      <JsonLd data={webSiteJsonLd} />
+      {productListJsonLd && <JsonLd data={productListJsonLd} />}
+
       {/* Navbar */}
-     
-      
+
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header */}
         <div className="mb-12">

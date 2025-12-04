@@ -2496,7 +2496,7 @@ After delivering the complete platform, you can offer these upgrades:
 - Export orders to CSV
 - Advanced analytics dashboard
 
-### Tier 3 Enhancements ($500-800 each)
+### Tier 3 Enhancements ($500-800 each)/
 - Customer accounts with order history
 - Abandoned cart recovery emails
 - Inventory alerts via email/SMS

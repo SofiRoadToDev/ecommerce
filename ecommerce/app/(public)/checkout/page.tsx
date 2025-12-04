@@ -13,14 +13,29 @@ import { useCartStore } from '@/store/cartStore'
 import { formatPrice } from '@/lib/utils'
 import { t } from '@/lib/i18n'
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations/checkout'
-import { PaymentForm } from '@/components/public/PaymentForm'
 
-// Dynamic import para PayPalProvider para evitar problemas de SSR y JSX
+// Dynamic imports for heavy components (PayPal SDK)
 const PayPalProvider = dynamic(
   () => import('@/components/public/PayPalProvider').then(mod => ({ default: mod.PayPalProvider })),
   {
     ssr: false,
-    loading: () => <div>Cargando PayPal...</div>
+    loading: () => <div className="text-center text-gray-600">Cargando PayPal...</div>
+  }
+)
+
+const PaymentForm = dynamic(
+  () => import('@/components/public/PaymentForm').then(mod => ({ default: mod.PaymentForm })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold text-gray-900">{t('checkout.paymentDetails')}</h2>
+        <div className="animate-pulse space-y-3">
+          <div className="h-12 bg-gray-200 rounded-lg"></div>
+          <div className="h-12 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    )
   }
 )
 

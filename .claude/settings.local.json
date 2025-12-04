@@ -16,7 +16,10 @@
       "Bash(git restore:*)",
       "Bash(git ls-tree:*)",
       "WebSearch",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(ESLINT_NO_DEV_ERRORS=true npm run build:*)",
+      "Bash(test:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,6 @@
 # 🚀 Setup Guide
 
-Complete step-by-step instructions to set up the e-commerce platform from scratch.
+Complete step-by-step instructions to set up the e-commerce platform.
 
 ## 📋 Prerequisites
 
@@ -11,11 +11,10 @@ Complete step-by-step instructions to set up the e-commerce platform from scratc
 
 ### Required Accounts (Free Tiers)
 - **Supabase**: [https://supabase.com](https://supabase.com) - Database + Storage
-- **Stripe**: [https://stripe.com](https://stripe.com) - Payment processing
+- **PayPal**: [https://developer.paypal.com](https://developer.paypal.com) - Payment processing
 - **Resend**: [https://resend.com](https://resend.com) - Email service
 
 ### Recommended Tools
-- **Stripe CLI**: For local webhook testing
 - **VS Code**: With TypeScript extension
 
 ## 🛠️ Step-by-Step Setup
@@ -107,35 +106,29 @@ ADMIN_PASSWORD_HASH=your-secure-password
 EMAIL_WEBHOOK_SECRET=another-secure-secret
 ```
 
-### 6. Create Stripe Account
+### 6. Create PayPal Developer Account
 
 #### a. Create Account
-1. Go to [https://stripe.com](https://stripe.com)
-2. Complete business setup
-3. Go to Developers → API keys
-4. Copy:
-   - Publishable key (`NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`)
-   - Secret key (`STRIPE_SECRET_KEY`)
+1. Go to [https://developer.paypal.com](https://developer.paypal.com)
+2. Sign in with PayPal account
+3. Go to My Apps & Credentials
+4. Create new app: `ecommerce-store`
+5. Copy:
+   - Client ID (`NEXT_PUBLIC_PAYPAL_CLIENT_ID`)
+   - Secret (`PAYPAL_CLIENT_SECRET`)
 
-#### b. Configure Payment Methods
-1. Go to Settings → Payment methods
-2. Enable: Credit/Debit Cards
-3. Configure: Automatic payment methods for PaymentIntents
+#### b. Create Sandbox Accounts
+1. Go to Sandbox → Accounts
+2. Create Business account (for receiving payments)
+3. Create Personal account (for testing purchases)
 
-#### c. Install Stripe CLI (Optional but Recommended)
-```bash
-# macOS
-brew install stripe/stripe-cli/stripe
-
-# Linux
-curl -s https://packages.stripe.dev/api/security/keypair/stripe-cli-gpg/public/gpg.key | sudo apt-key add -
-echo "deb https://packages.stripe.dev/stripe-cli-debian-local stable main" | sudo tee -a /etc/apt/sources.list.d/stripe.list
-sudo apt update
-sudo apt install stripe
-
-# Verify installation
-stripe --version
-```
+#### c. Configure Webhooks
+1. Go to your app → Webhooks
+2. Add webhook endpoint: `https://your-domain.com/api/webhooks/paypal`
+3. Subscribe to events:
+   - `PAYMENT.CAPTURE.COMPLETED`
+   - `PAYMENT.CAPTURE.DENIED`
+4. Copy webhook ID to `PAYPAL_WEBHOOK_ID`
 
 ### 7. Create Resend Account
 
@@ -146,7 +139,15 @@ stripe --version
 4. Create new API key
 5. Copy key to `RESEND_API_KEY`
 
-#### b. Verify Domain (Production)
+#### b. Configure Email Settings
+```bash
+# Email configuration
+FROM_EMAIL=noreply@yourstore.com
+FROM_NAME=Your Store
+REPLY_TO_EMAIL=support@yourstore.com
+```
+
+#### c. Verify Domain (Production)
 - Add your domain in Resend
 - Follow DNS verification steps
 - Set as default sender
@@ -160,7 +161,7 @@ stripe --version
 CREATE EXTENSION IF NOT EXISTS http;
 ```
 
-#### b. Set Custom Config
+#### b. Set Custom Config (Optional)
 1. Go to Settings → Custom Config
 2. Add:
 ```
@@ -168,28 +169,7 @@ app.webhook_url = http://localhost:3000
 app.webhook_secret = your-email-webhook-secret
 ```
 
-### 9. Set Up Stripe Webhooks (Local Development)
-
-#### a. Install Stripe CLI (if not done)
-See step 6b above.
-
-#### b. Login to Stripe CLI
-```bash
-stripe login
-```
-
-#### c. Forward Webhooks
-```bash
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-```
-
-#### d. Save Webhook Secret
-Copy the webhook secret output and add to `.env.local`:
-```bash
-STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
-```
-
-### 10. Start Development Server
+### 9. Start Development Server
 
 #### a. Run Development Server
 ```bash
@@ -218,13 +198,16 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Stripe
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
-STRIPE_SECRET_KEY=sk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
+# PayPal
+NEXT_PUBLIC_PAYPAL_CLIENT_ID=xxx
+PAYPAL_CLIENT_SECRET=xxx
+PAYPAL_WEBHOOK_ID=xxx
 
 # Resend
 RESEND_API_KEY=re_xxx
+FROM_EMAIL=noreply@yourstore.com
+FROM_NAME=Your Store
+REPLY_TO_EMAIL=support@yourstore.com
 
 # Admin
 ADMIN_PASSWORD_HASH=your-admin-password
@@ -254,23 +237,24 @@ curl https://your-project.supabase.co/rest/v1/products \
   -H "Accept: application/json"
 ```
 
-### 3. Stripe Integration
+### 3. PayPal Integration
 ```bash
-# Test payment creation
-curl -X POST http://localhost:3000/api/create-payment-intent \
+# Test order creation
+curl -X POST http://localhost:3000/api/create-paypal-order \
   -H "Content-Type: application/json" \
-  -d '{"items":[{"id":"product-id","quantity":1}],"customer":{"email":"test@example.com","name":"Test User","address":"123 Main St","city":"New York","postalCode":"10001","country":"US"}}'
-
-# Test with Stripe CLI
-stripe trigger payment_intent.succeeded
+  -d '{"items":[{"id":"product-id","quantity":1}]}'
 ```
 
-**Test Cards:**
-- ✅ Success: `4242 4242 4242 4242`
-- ❌ Declined: `4000 0000 0000 0002`
-- 🔄 3D Secure: `4000 0025 0000 3155`
+### 4. Test PayPal Payment Flow
+1. Add products to cart
+2. Proceed to checkout
+3. Fill shipping information
+4. Click PayPal button
+5. Login with test buyer account
+6. Complete payment
+7. Verify order confirmation
 
-### 4. Email Service
+### 5. Email Service
 ```bash
 # Test Resend API
 curl -X POST https://api.resend.com/emails \
@@ -293,12 +277,18 @@ curl -X POST https://api.resend.com/emails \
 - Check if tables have RLS enabled
 - Verify correct auth context
 
+### Issue: "PayPal button not loading"
+**Solution:**
+- Check PayPal Client ID is correct
+- Verify using sandbox credentials for development
+- Check browser console for JavaScript errors
+
 ### Issue: "Webhook not working"
 **Solution:**
-- Check Stripe webhook secret is correct
+- Check PayPal webhook ID is correct
 - Verify webhook URL is accessible
 - Check server logs for errors
-- Ensure raw body is preserved
+- Ensure webhook events are subscribed
 
 ### Issue: "Build fails"
 **Solution:**
@@ -312,20 +302,37 @@ curl -X POST https://api.resend.com/emails \
 - Verify RLS policies for storage
 - Check image URLs are correct
 
+## ⚠️ Known Issues
+
+### TypeScript Type Errors
+The project currently has some type inconsistencies that need to be addressed:
+
+1. **Database Schema vs Type Definitions**: The `orders` table uses `paypal_order_id` but type definitions still reference `stripe_payment_id`
+2. **Supabase Generated Types**: May need regeneration after database changes
+
+**Temporary Fix:**
+```bash
+# Ignore type errors during development
+npm run dev -- --ignore-type-errors
+```
+
+**Permanent Fix:**
+Update type definitions in `types/models.ts` to match actual database schema.
+
 ## 🚀 Next Steps
 
 After successful setup:
 
-1. **Start Development**: Begin building Phase 2 features
-2. **Customize Products**: Add your own products via SQL or admin panel (Phase 12)
-3. **Configure Payments**: Set up Stripe for production
+1. **Start Development**: Begin building additional features
+2. **Customize Products**: Add your own products via SQL or admin panel
+3. **Configure PayPal**: Set up PayPal for production
 4. **Customize Emails**: Modify email templates
-5. **Deploy**: Follow deployment guide in Phase 10
+5. **Deploy**: Follow deployment guide
 
 ## 📚 Additional Resources
 
 - [Supabase Documentation](https://supabase.com/docs)
-- [Stripe Documentation](https://stripe.com/docs)
+- [PayPal Developer Documentation](https://developer.paypal.com/docs)
 - [Resend Documentation](https://resend.com/docs)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
@@ -348,7 +355,7 @@ After setup, verify:
 - [ ] Database connection works
 - [ ] Products load on home page
 - [ ] Environment variables are set
-- [ ] Stripe webhooks are configured
+- [ ] PayPal sandbox is configured
 - [ ] Email service is connected
 - [ ] Admin password is set
 - [ ] Storage bucket is created

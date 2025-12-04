@@ -24,10 +24,10 @@ ecommerce/
 │   └── api/                   # API routes
 │       ├── auth/
 │       │   └── admin/route.ts # Admin login API
-│       ├── create-payment-intent/route.ts # Stripe payment creation
+│       ├── create-paypal-order/route.ts # PayPal order creation
 │       ├── send-order-email/route.ts
 │       └── webhooks/
-│           └── stripe/route.ts
+│           └── paypal/route.ts # PayPal webhook handler
 ├── components/
 │   ├── ui/                    # Reusable UI primitives
 │   │   ├── button.tsx
@@ -40,7 +40,7 @@ ecommerce/
 │   │   ├── ProductCard.tsx
 │   │   ├── ProductSkeleton.tsx
 │   │   ├── CartSheet.tsx
-│   │   └── PaymentForm.tsx     # Stripe Elements integration
+│   │   └── PaymentForm.tsx     # PayPal Buttons integration
 │   └── admin/                 # Admin components
 │       ├── AdminNav.tsx
 │       ├── ProductForm.tsx
@@ -55,9 +55,9 @@ ecommerce/
 │   ├── i18n/
 │   │   ├── translations.ts    # All translations (en, es, pt)
 │   │   └── index.ts           # t() function
-│   ├── stripe/
-│   │   ├── server.ts          # Server-side Stripe client
-│   │   └── client.ts          # Client-side Stripe (singleton)
+│   ├── paypal/                # PayPal integration
+│   │   ├── server.ts          # Server-side PayPal client
+│   │   └── client.ts          # Client-side PayPal configuration
 │   ├── email.ts               # Email utilities
 │   ├── utils.ts               # Shared utilities (cn, formatPrice)
 │   └── validations/           # Zod schemas
@@ -87,28 +87,27 @@ ecommerce/
 - **Authentication**: Password-based (simple, secure)
 - **Examples**: Dashboard, product management, order management
 
-## 💳 Stripe Integration Architecture
+## 💳 PayPal Integration Architecture
 
 ### Payment Flow
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Checkout Page │    │  Payment Intent │    │  Stripe API     │
+│   Checkout Page │    │  PayPal Order   │    │  PayPal API     │
 │                 │◄──►│  API Route      │◄──►│                 │
-│ - Shipping Form │    │                 │    │ - Payment       │
-│ - Payment Form  │    │ - Validate      │    │   Processing    │
-│ - Order Summary │    │   Stock/Prices  │    │ - Webhooks      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-       │                       │                       │
-       ▼                       ▼                       ▼
+│ - Shipping Form │    │                 │    │ - Order         │
+│ - Payment Form  │    │ - Validate      │    │   Creation      │
+│ - Order Summary │    │   Stock/Prices  │    │ - Payment       │
+└─────────────────┘    └─────────────────┘    │   Processing    │
+       │                       │               └─────────────────┘
+       ▼                       ▼                       │
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  PaymentForm    │    │  Supabase DB    │    │  Email Service  │
 │  Component      │    │                 │    │                 │
 │                 │    │ - Products      │    │ - Order         │
-│ - Stripe        │    │ - Orders        │    │   Confirmation  │
-│   Elements      │    │ - Order Items   │    │ - Status        │
-│ - Card Input    │    │                 │    │   Updates       │
-│ - Payment       │    │                 │    │                 │
-│   Confirmation  │    │                 │    │                 │
+│ - PayPal        │    │ - Orders        │    │   Confirmation  │
+│   Buttons       │    │ - Order Items   │    │ - Status        │
+│ - Payment       │    │ - Pending       │    │   Updates       │
+│   Capture       │    │   Orders        │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -116,7 +115,7 @@ ecommerce/
 1. **Never trust client prices** - Always fetch from database
 2. **Stock validation** before payment creation
 3. **Server-side total calculation** only
-4. **PaymentIntent metadata** for webhook processing
+4. **Pending orders storage** for webhook processing
 5. **Webhook signature verification** for payment confirmation
 
 ## 🧩 Component Organization
@@ -152,23 +151,24 @@ Admin-specific components:
 │ - CartSheet     │◄──►│ - ProductList   │◄──►│ - products      │
 │ - ProductCard   │    │ - OrderDetails  │    │ - orders        │
 │ - PaymentForm   │    │ - AdminStats    │    │ - order_items   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-       │                       │                       │
-       ▼                       ▼                       ▼
+└─────────────────┘    └─────────────────┘    │ - pending_orders│
+       │                       │               └─────────────────┘
+       ▼                       ▼                       │
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Zustand Store  │    │  Supabase       │    │  Stripe API     │
+│  Zustand Store  │    │  Supabase       │    │  PayPal API     │
 │                 │    │  Clients        │    │                 │
-│ - Cart State    │    │                 │    │ - Payment       │
-│ - Persistence   │    │ - server.ts     │    │   Processing    │
-│                 │    │ - client.ts     │    │ - Webhooks      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+│ - Cart State    │    │                 │    │ - Order         │
+│ - Persistence   │    │ - server.ts     │    │   Creation      │
+│                 │    │ - client.ts     │    │ - Payment       │
+└─────────────────┘    └─────────────────┘    │   Capture       │
+                                              └─────────────────┘
 ```
 
 ### Client Components
 - Handle user interactions
 - Manage local state (cart)
 - Call API routes for mutations
-- Integrate Stripe Elements
+- Integrate PayPal Buttons
 - Use client-side Supabase for real-time features
 
 ### Server Components
@@ -176,16 +176,17 @@ Admin-specific components:
 - No client-side JavaScript bundle
 - Direct database queries
 - Better SEO and performance
-- Create Stripe PaymentIntents
+- Create PayPal orders
 
 ### Supabase Clients
 - **server.ts**: For Server Components (service role)
 - **client.ts**: For Client Components (user auth)
+- **admin.ts**: For admin operations (service role)
 
-### Stripe Integration
-- **server.ts**: Server-side PaymentIntent creation
-- **client.ts**: Client-side Stripe Elements initialization
-- **PaymentForm**: React component for card input
+### PayPal Integration
+- **server.ts**: Server-side order creation and capture
+- **client.ts**: Client-side PayPal SDK configuration
+- **PaymentForm**: React component for PayPal buttons
 
 ## 🔐 Authentication Strategy
 
@@ -263,6 +264,39 @@ import { t } from '@/lib/i18n'
 - **Server-side**: Zod validation + database constraints
 - **Never trust client**: Prices fetched server-side for payments
 
+## ⚠️ Known Technical Issues
+
+### TypeScript Type Inconsistencies
+The project currently has type definition issues that need resolution:
+
+1. **Database Schema Mismatch**: 
+   - `orders` table uses `paypal_order_id` (string, unique, not null)
+   - Type definitions still reference `stripe_payment_id: string | null`
+   - **Location**: `types/models.ts` line 35
+
+2. **Supabase Generated Types**: 
+   - May need regeneration after database schema changes
+   - **Location**: `types/database.ts`
+
+3. **Admin Email Utilities**:
+   - Type errors in `lib/email/admin.ts`
+   - Missing proper type definitions for email functions
+
+### Temporary Workarounds
+```typescript
+// Use type assertions where necessary
+const order = orderData as any
+
+// Or ignore specific lines
+// @ts-ignore
+```
+
+### Permanent Solutions Required
+1. Update `types/models.ts` to match actual database schema
+2. Regenerate Supabase types: `npx supabase gen types typescript --project-id your-project-id > types/database.ts`
+3. Fix email utility type definitions
+4. Add proper error handling for type-safe operations
+
 ## 📊 Performance Optimizations
 
 ### Image Optimization
@@ -283,8 +317,31 @@ import { t } from '@/lib/i18n'
 ## 🎯 Design Principles
 
 1. **Separation of Concerns**: Clear boundaries between client/server
-2. **Type Safety**: Full TypeScript coverage
+2. **Type Safety**: Full TypeScript coverage (with known issues to fix)
 3. **Accessibility**: ARIA labels, keyboard navigation
 4. **Mobile-First**: Responsive design approach
 5. **Performance**: Minimal JavaScript, server-side rendering
 6. **Security**: RLS, input validation, secure defaults
+
+## 🚀 Current Implementation Status
+
+### ✅ Fully Implemented
+- Product catalog with filtering and search
+- Shopping cart with persistent state
+- PayPal payment integration
+- Multi-language support (EN, ES, PT)
+- Admin panel for product/order management
+- Email notifications
+- Responsive design
+
+### ⚠️ Partially Implemented
+- TypeScript type safety (has inconsistencies)
+- Webhook signature verification (needs completion)
+- Error handling (some edge cases missing)
+
+### ❌ Not Yet Implemented
+- Production PayPal configuration
+- Advanced analytics
+- Inventory management alerts
+- Customer accounts
+- Advanced shipping options

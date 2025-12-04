@@ -182,6 +182,7 @@ export function ImageUpload({
               alt="Product preview"
               fill
               className="object-contain bg-gray-50"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
             <button
               type="button"

@@ -43,7 +43,7 @@ export interface OrderItem {
   price_at_purchase: number
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'ready_for_pickup' | 'completed'
+export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'ready_for_pickup' | 'completed' | 'cancelled'
 
 export interface OrderWithDetails extends Order {
   items: (OrderItem & {

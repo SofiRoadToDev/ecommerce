@@ -1,13 +1,24 @@
 import { getUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { t } from '@/lib/i18n'
-import { Package, ShoppingCart, DollarSign, AlertCircle } from 'lucide-react'
+import { Package, ShoppingCart, DollarSign, AlertCircle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { Order } from '@/types/models'
 
 interface DashboardStats {
   totalSales: number
   pendingOrders: number
   totalProducts: number
   lowStockCount: number
+}
+
+interface RecentOrder {
+  id: string
+  created_at: string
+  customer_name: string
+  customer_email: string
+  total_amount: number
+  status: Order['status']
 }
 
 async function getDashboardStats(): Promise<DashboardStats> {
@@ -22,11 +33,11 @@ async function getDashboardStats(): Promise<DashboardStats> {
 
   const totalSales = salesData?.reduce((sum: number, order: any) => sum + order.total_amount, 0) || 0
 
-  // Get pending orders count
+  // Get pending orders count (paid + processing)
   const { count: pendingCount } = await supabase
     .from('orders')
     .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending')
+    .in('status', ['paid', 'processing'])
 
   // Get total products count
   const { count: productsCount } = await supabase
@@ -47,9 +58,22 @@ async function getDashboardStats(): Promise<DashboardStats> {
   }
 }
 
+async function getRecentOrders(): Promise<RecentOrder[]> {
+  const supabase = createAdminClient()
+
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('id, created_at, customer_name, customer_email, total_amount, status')
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  return orders || []
+}
+
 export default async function AdminDashboardPage() {
   const user = await getUser()
   const stats = await getDashboardStats()
+  const recentOrders = await getRecentOrders()
 
   return (
     <div>
@@ -97,7 +121,7 @@ export default async function AdminDashboardPage() {
             {stats.pendingOrders}
           </p>
           <p className="text-xs text-gray-500 mt-2">
-            Awaiting payment
+            Needs attention
           </p>
         </div>
 
@@ -138,17 +162,83 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Placeholder for future sections */}
-      <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
-        <div className="text-center">
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {t('admin.dashboardPlaceholder')}
-          </h2>
-          <p className="text-gray-600">
-            {t('admin.dashboardDescription')}
-          </p>
+      {/* Recent Orders */}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Clock className="w-6 h-6 text-gray-900" />
+              <h2 className="text-xl font-semibold text-gray-900">
+                Recent Orders
+              </h2>
+            </div>
+            <Link
+              href="/admin/orders"
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            >
+              View all
+            </Link>
+          </div>
         </div>
+
+        {recentOrders.length === 0 ? (
+          <div className="p-12 text-center">
+            <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600">No orders yet</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {recentOrders.map((order) => {
+              const statusConfig: Record<typeof order.status, { label: string; className: string }> = {
+                pending: { label: 'Pending', className: 'bg-gray-50 text-gray-700 border-gray-200' },
+                paid: { label: 'Paid', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+                processing: { label: 'Processing', className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+                shipped: { label: 'Shipped', className: 'bg-green-50 text-green-700 border-green-200' },
+                ready_for_pickup: { label: 'Ready for Pickup', className: 'bg-purple-50 text-purple-700 border-purple-200' },
+                completed: { label: 'Completed', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                cancelled: { label: 'Cancelled', className: 'bg-red-50 text-red-700 border-red-200' }
+              }
+
+              const config = statusConfig[order.status]
+
+              return (
+                <div key={order.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-sm font-mono text-gray-900">
+                          {order.id.slice(0, 8)}
+                        </span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${config.className}`}>
+                          {config.label}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-900 font-medium truncate">
+                        {order.customer_name}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">
+                        {order.customer_email}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-lg font-bold text-gray-900">
+                        ${order.total_amount.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(order.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

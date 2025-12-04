@@ -134,6 +134,7 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                         alt={product.title}
                         fill
                         className="object-cover"
+                        sizes="64px"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">

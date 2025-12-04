@@ -49,7 +49,7 @@ CREATE TABLE orders (
   total_amount NUMERIC(10, 2) NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'paid', 'processing', 'shipped', 'ready_for_pickup', 'completed')),
-  stripe_payment_id TEXT UNIQUE
+  paypal_order_id TEXT UNIQUE
 );
 ```
 
@@ -63,8 +63,9 @@ CREATE TABLE orders (
 | `shipping_address` | JSONB | Shipping address object | NOT NULL |
 | `total_amount` | NUMERIC(10,2) | Order total | NOT NULL |
 | `status` | TEXT | Order status | NOT NULL, DEFAULT 'pending' |
-| `stripe_payment_id` | TEXT | Stripe payment ID | UNIQUE, Nullable |
-| `stripe_payment_intent_id` | TEXT | Stripe PaymentIntent ID | UNIQUE, Nullable |
+| `paypal_order_id` | TEXT | PayPal order ID | UNIQUE, Nullable |
+
+**⚠️ NOTA:** El campo `stripe_payment_id` mencionado en documentación anterior fue reemplazado por `paypal_order_id` en la implementación real.
 
 **shipping_address JSONB structure:**
 ```json
@@ -106,6 +107,31 @@ CREATE TABLE order_items (
 | `quantity` | INTEGER | Item quantity | NOT NULL, CHECK > 0 |
 | `price_at_purchase` | NUMERIC(10,2) | Price when ordered | NOT NULL |
 
+### `pending_orders` Table
+
+Stores temporary order data during PayPal payment processing.
+
+```sql
+CREATE TABLE pending_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  paypal_order_id TEXT UNIQUE NOT NULL,
+  order_items JSONB NOT NULL,
+  total_amount NUMERIC(10, 2) NOT NULL,
+  shipping_data JSONB NOT NULL
+);
+```
+
+**Fields:**
+| Field | Type | Description | Constraints |
+|-------|------|-------------|-------------|
+| `id` | UUID | Primary key | DEFAULT gen_random_uuid() |
+| `created_at` | TIMESTAMPTZ | Creation timestamp | DEFAULT NOW() |
+| `paypal_order_id` | TEXT | PayPal order ID | UNIQUE, NOT NULL |
+| `order_items` | JSONB | Order items data | NOT NULL |
+| `total_amount` | NUMERIC(10,2) | Order total | NOT NULL |
+| `shipping_data` | JSONB | Shipping information | NOT NULL |
+
 ## 🔗 Relationships
 
 ### Entity Relationship Diagram
@@ -121,6 +147,8 @@ products (1) ←─── (many) order_items
    ┌──────────────┘
    ↓
 order_items (each item references a product)
+
+pending_orders (temporary, references PayPal orders)
 ```
 
 ### Relationship Details
@@ -131,6 +159,10 @@ order_items (each item references a product)
 - **orders → order_items**: One-to-many
   - One order can have many items
   - Deleting an order cascades to delete its items
+
+- **pending_orders → orders**: One-to-one (temporal)
+  - Temporary storage during payment processing
+  - Deleted after successful payment confirmation
 
 ## 🚀 Indexes
 
@@ -157,6 +189,9 @@ CREATE INDEX idx_order_items_order ON order_items(order_id);
 
 -- Order items queries by product
 CREATE INDEX idx_order_items_product ON order_items(product_id);
+
+-- Pending orders by PayPal order ID
+CREATE INDEX idx_pending_orders_paypal ON pending_orders(paypal_order_id);
 ```
 
 ## 🛡️ Row Level Security (RLS)
@@ -204,6 +239,13 @@ CREATE POLICY "Users read own items" ON order_items
 -- Admin: Authenticated users can do everything
 CREATE POLICY "Admin full access" ON order_items
   FOR ALL USING (auth.role() = 'authenticated');
+```
+
+### Pending Orders Table
+```sql
+-- System: Service role can manage pending orders
+CREATE POLICY "Service role access" ON pending_orders
+  FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
 ```
 
 ## 🏪 Storage Bucket
@@ -255,7 +297,7 @@ SELECT decrement_stock('product-uuid', 2);
 ```
 
 **When used:**
-- Called from Stripe webhook after successful payment
+- Called from PayPal webhook after successful payment
 - Ensures atomic stock update
 - Prevents overselling
 
@@ -336,6 +378,22 @@ app.webhook_secret = 'your-secret-key'
 CREATE EXTENSION IF NOT EXISTS http;
 ```
 
+## ⚠️ PROBLEMAS TÉCNICOS CONOCIDOS
+
+### 1. Bug de Tipos en TypeScript
+**Estado:** CRÍTICO - Requiere fix inmediato
+**Ubicación:** `types/database.ts` - líneas 50-52
+**Problema:** Tipos `Insert` y `Update` para `pending_orders` están definidos como `never`
+**Impacto:** Build falla, desarrollo bloqueado
+**Solución:** Regenerar tipos de Supabase o corregir manualmente
+
+### 2. Interface CartItem Incompleta  
+**Estado:** ALTO - Requiere fix inmediato
+**Ubicación:** `types/models.ts` vs `store/cartStore.ts`
+**Problema:** El código usa `category` pero el tipo no la incluye
+**Impacto:** Error de TypeScript en tiempo de compilación
+**Solución:** Agregar `category` a la interface `CartItem`
+
 ## 📊 Database Optimization
 
 ### Query Performance
@@ -357,7 +415,7 @@ CREATE EXTENSION IF NOT EXISTS http;
 - **Stock validation**: CHECK (stock >= 0)
 - **Quantity validation**: CHECK (quantity > 0)
 - **Status validation**: CHECK (status IN (...))
-- **Unique payments**: stripe_payment_id UNIQUE
+- **Unique payments**: paypal_order_id UNIQUE
 
 ### Relationships
 - **Cascade deletes**: Order items deleted when order is deleted

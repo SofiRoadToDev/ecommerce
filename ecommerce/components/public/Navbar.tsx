@@ -1,11 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ShoppingCart } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import { useCartStore } from '@/store/cartStore'
-import { CartSheet } from './CartSheet'
+
+// Lazy load CartSheet (only loads when cart is opened)
+const CartSheet = dynamic(() => import('./CartSheet').then(mod => ({ default: mod.CartSheet })), {
+  ssr: false,
+  loading: () => null
+})
 
 export function Navbar() {
   const [mounted, setMounted] = useState(false)

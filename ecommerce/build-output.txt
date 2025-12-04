@@ -1,0 +1,72 @@
+
+> ecommerce@0.1.0 build
+> next build
+
+   ▲ Next.js 15.1.0
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (128kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+A Node.js API is used (process.versions at line: 39) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+./node_modules/@supabase/realtime-js/dist/module/index.js
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/@supabase/ssr/dist/module/createServerClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+
+./node_modules/@supabase/supabase-js/dist/module/index.js
+A Node.js API is used (process.version at line: 32) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/@supabase/ssr/dist/module/createServerClient.js
+./node_modules/@supabase/ssr/dist/module/index.js
+
+ ✓ Compiled successfully
+   Skipping linting
+   Checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/16) ...
+   Generating static pages (4/16) 
+   Generating static pages (8/16) 
+   Generating static pages (12/16) 
+ ✓ Generating static pages (16/16)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    3.12 kB         125 kB
+├ ○ /_not-found                          979 B           107 kB
+├ ƒ /admin/dashboard                     175 B           109 kB
+├ ○ /admin/login                         1.94 kB         173 kB
+├ ○ /admin/orders                        4.62 kB         162 kB
+├ ƒ /admin/products                      3.53 kB         125 kB
+├ ƒ /admin/products/[id]/edit            142 B           141 kB
+├ ƒ /admin/products/new                  142 B           141 kB
+├ ƒ /api/admin/orders/[id]/status        158 B           106 kB
+├ ƒ /api/admin/products                  158 B           106 kB
+├ ƒ /api/admin/products/[id]             158 B           106 kB
+├ ƒ /api/auth/callback                   158 B           106 kB
+├ ƒ /api/create-paypal-order             158 B           106 kB
+├ ƒ /api/send-order-email                158 B           106 kB
+├ ƒ /api/webhooks/paypal                 158 B           106 kB
+├ ○ /checkout                            3.11 kB         150 kB
+└ ○ /checkout/success                    2.04 kB         122 kB
++ First Load JS shared by all            106 kB
+  ├ chunks/4bd1b696-967d22ce8ccfbc93.js  52.9 kB
+  ├ chunks/517-8eb0bcb171218cec.js       50.5 kB
+  └ other shared chunks (total)          2.17 kB
+
+
+ƒ Middleware                             81.4 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

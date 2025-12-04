@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -9,9 +10,21 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { ImageUpload } from './ImageUpload'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import type { Product } from '@/types/models'
+
+// Lazy load ImageUpload (heavy component with Supabase)
+const ImageUpload = dynamic(() => import('./ImageUpload').then(mod => ({ default: mod.ImageUpload })), {
+  ssr: false,
+  loading: () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+      <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+        <p className="text-sm text-gray-400">Loading image uploader...</p>
+      </div>
+    </div>
+  )
+})
 
 interface ProductFormProps {
   mode: 'create' | 'edit'
