@@ -14,7 +14,9 @@
       "Bash(cat:*)",
       "Bash(git rm:*)",
       "Bash(git restore:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "WebSearch",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

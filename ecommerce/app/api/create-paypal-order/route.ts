@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createPayPalOrder } from '@/lib/paypal/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { Database } from '@/types/database'
 
 // Validation schema for request body
 const createOrderSchema = z.object({
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
       .from('products')
       .select('id, title, price, stock')
       .in('id', productIds)
+      .returns<Array<{ id: string; title: string; price: number; stock: number }>>()
 
     if (fetchError || !products) {
       console.error('Error fetching products:', fetchError)
@@ -96,16 +98,19 @@ export async function POST(request: NextRequest) {
     const order = await createPayPalOrder(total, 'USD')
 
     // Store order items and customer data in temporary table for webhook processing
-    const { error: storeError } = await supabase
-      .from('pending_orders')
-      .insert({
-        paypal_order_id: order.id,
-        order_items: orderItems,
-        total_amount: total,
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_address: customer,
-      })
+    const pendingOrder: Database['public']['Tables']['pending_orders']['Insert'] = {
+      paypal_order_id: order.id,
+      order_items: orderItems,
+      total_amount: total,
+      customer_name: customer.name,
+      customer_email: customer.email,
+      customer_address: customer,
+    }
+
+    // Workaround: Supabase types not recognizing pending_orders after upgrade (see bugs_to_fix.md)
+    const { error: storeError } = await (supabase
+      .from('pending_orders') as any)
+      .insert(pendingOrder)
 
     if (storeError) {
       console.error('Error storing pending order:', storeError)

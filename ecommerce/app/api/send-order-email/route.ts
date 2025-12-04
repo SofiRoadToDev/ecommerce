@@ -12,15 +12,15 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 /**
  * Validate webhook secret
  */
-function validateWebhookSecret(request: NextRequest): boolean {
-  const headersList = headers()
+async function validateWebhookSecret(request: NextRequest): Promise<boolean> {
+  const headersList = await headers()
   const providedSecret = headersList.get('x-secret')
   const expectedSecret = process.env.EMAIL_WEBHOOK_SECRET
-  
+
   if (!expectedSecret || !providedSecret) {
     return false
   }
-  
+
   return providedSecret === expectedSecret
 }
 
@@ -32,7 +32,7 @@ function validateWebhookSecret(request: NextRequest): boolean {
 export async function POST(request: NextRequest) {
   try {
     // Validate webhook secret for security
-    if (!validateWebhookSecret(request)) {
+    if (!(await validateWebhookSecret(request))) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       to,
       subject,
       html,
-      replyTo: process.env.REPLY_TO_EMAIL || 'support@yourstore.com'
+      reply_to: process.env.REPLY_TO_EMAIL || 'support@yourstore.com'
     })
 
     if (error) {

@@ -1,4 +1,4 @@
-import type { Product, Order, OrderItem } from './models'
+import type { Product, Order, OrderItem, PendingOrder } from './models'
 
 export type Database = {
   public: {
@@ -17,6 +17,11 @@ export type Database = {
         Row: OrderItem
         Insert: Omit<OrderItem, 'id'>
         Update: Partial<Omit<OrderItem, 'id'>>
+      }
+      pending_orders: {
+        Row: PendingOrder
+        Insert: Omit<PendingOrder, 'id' | 'created_at'>
+        Update: Partial<Omit<PendingOrder, 'id' | 'created_at'>>
       }
     }
   }

@@ -3,6 +3,7 @@ import { Navbar } from '@/components/public/Navbar'
 import { ProductCard } from '@/components/public/ProductCard'
 import { FilterButtons } from '@/components/public/FilterButtons'
 import { t } from '@/lib/i18n'
+import type { Product } from '@/types/models'
 
 interface HomePageProps {
   searchParams: Promise<{ category?: string; search?: string }>
@@ -29,7 +30,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     query = query.ilike('title', `%${search.trim()}%`)
   }
   
-  let products = null
+  let products: Product[] | null = null
   let error = null
 
   try {
@@ -50,6 +51,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           price: 29.99,
           category: 'electronics',
           image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+          stock: 10,
           created_at: new Date().toISOString()
         },
         {
@@ -59,6 +61,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           price: 49.99,
           category: 'clothing',
           image_url: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400',
+          stock: 5,
           created_at: new Date().toISOString()
         }
       ]

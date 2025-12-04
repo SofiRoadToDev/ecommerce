@@ -4,13 +4,16 @@
  */
 
 import { Resend } from 'resend'
-import { 
-  orderConfirmedTemplate, 
-  orderProcessingTemplate, 
-  orderShippedTemplate, 
+import {
+  orderConfirmedTemplate,
+  orderProcessingTemplate,
+  orderShippedTemplate,
   orderReadyForPickupTemplate,
-  OrderEmailData 
+  OrderEmailData
 } from './templates'
+
+// Re-export OrderEmailData for external use
+export type { OrderEmailData } from './templates'
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -21,7 +24,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const EMAIL_CONFIG = {
   from: process.env.FROM_EMAIL || 'noreply@yourstore.com',
   fromName: process.env.FROM_NAME || 'Your Store',
-  replyTo: process.env.REPLY_TO_EMAIL || 'support@yourstore.com'
+  reply_to: process.env.REPLY_TO_EMAIL || 'support@yourstore.com'
 }
 
 /**
@@ -36,7 +39,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
       to: data.customerEmail,
       subject,
       html,
-      replyTo: EMAIL_CONFIG.replyTo
+      reply_to: EMAIL_CONFIG.reply_to
     })
 
     if (error) {
@@ -82,7 +85,7 @@ export async function sendOrderStatusEmail(data: OrderEmailData & { previousStat
       to: data.customerEmail,
       subject,
       html: template.html,
-      replyTo: EMAIL_CONFIG.replyTo
+      reply_to: EMAIL_CONFIG.reply_to
     })
 
     if (error) {

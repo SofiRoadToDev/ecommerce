@@ -86,8 +86,9 @@ export async function POST(request: NextRequest) {
 
       // Get pending order data
       const supabase = createAdminClient()
-      const { data: pendingOrder, error: fetchError } = await supabase
-        .from('pending_orders')
+      // Workaround: Supabase types issue (see bugs_to_fix.md)
+      const { data: pendingOrder, error: fetchError } = await (supabase
+        .from('pending_orders') as any)
         .select('*')
         .eq('paypal_order_id', orderId)
         .single()
@@ -108,8 +109,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Create order in database
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
+      // Workaround: Supabase types issue (see bugs_to_fix.md)
+      const { data: order, error: orderError } = await (supabase
+        .from('orders') as any)
         .insert({
           customer_email: pendingOrder.customer_email,
           customer_name: pendingOrder.customer_name,
@@ -149,7 +151,8 @@ export async function POST(request: NextRequest) {
 
       // Update stock for each product
       for (const item of pendingOrder.order_items) {
-        const { error: stockError } = await supabase.rpc('decrement_stock', {
+        // Workaround: Supabase types issue (see bugs_to_fix.md)
+        const { error: stockError } = await (supabase as any).rpc('decrement_stock', {
           p_product_id: item.id, // Correct parameter name with p_ prefix
           p_quantity: item.quantity,
         })
@@ -184,8 +187,9 @@ export async function POST(request: NextRequest) {
       }
 
       // Delete pending order
-      await supabase
-        .from('pending_orders')
+      // Workaround: Supabase types issue (see bugs_to_fix.md)
+      await (supabase
+        .from('pending_orders') as any)
         .delete()
         .eq('paypal_order_id', orderId)
 
@@ -202,8 +206,9 @@ export async function POST(request: NextRequest) {
       // Optionally clean up pending order
       if (orderId) {
         const supabase = createAdminClient()
-        await supabase
-          .from('pending_orders')
+        // Workaround: Supabase types issue (see bugs_to_fix.md)
+        await (supabase
+          .from('pending_orders') as any)
           .delete()
           .eq('paypal_order_id', orderId)
       }
