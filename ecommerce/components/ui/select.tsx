@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { useId } from 'react'
 
 interface SelectOption {
   value: string
@@ -19,10 +20,12 @@ export function Select({
   placeholder,
   className,
   id,
+  name,
   ...props
 }: SelectProps) {
-  // Generate a unique ID if none is provided
-  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
+  // Use explicit id, then name (from react-hook-form), then generate consistent ID
+  const reactId = useId()
+  const selectId = id || (name ? `select-${name}` : reactId)
 
   return (
     <div className="space-y-1">
@@ -31,6 +34,7 @@ export function Select({
       </label>
       <select
         id={selectId}
+        name={name}
         className={cn(
           'w-full px-4 py-2.5 border rounded-lg text-gray-900 bg-white',
           'focus:ring-2 focus:ring-blue-500 focus:border-transparent',

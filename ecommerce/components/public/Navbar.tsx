@@ -43,7 +43,7 @@ export function Navbar() {
               aria-label="Open cart"
             >
               <ShoppingCart className="w-6 h-6" />
-              {itemCount > 0 && (
+              {mounted && itemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
                   {itemCount}
                 </span>
@@ -54,7 +54,9 @@ export function Navbar() {
       </nav>
 
       {/* Cart Sheet */}
-      <CartSheet open={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      {mounted && (
+        <CartSheet open={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      )}
     </>
   )
 }

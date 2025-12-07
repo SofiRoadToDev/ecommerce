@@ -6,9 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number): string {
-  const locale = process.env.NEXT_PUBLIC_LOCALE || 'en'
-  return new Intl.NumberFormat(locale, {
+  // Use consistent configuration for server and client
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(price)
 }

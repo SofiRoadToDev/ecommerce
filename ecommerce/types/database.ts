@@ -21,7 +21,30 @@ export type Database = {
       pending_orders: {
         Row: PendingOrder
         Insert: Omit<PendingOrder, 'id' | 'created_at'>
-        Update: Partial<Omit<PendingOrder, 'id' | 'created_at'>>
+        Update: Partial<Omit<PendingOrder, 'id'>>
+      }
+    }
+  }
+  auth: {
+    Tables: {
+      users: {
+        Row: {
+          id: string
+          email: string
+          raw_user_meta_data: {
+            role?: string
+          } | null
+          raw_app_meta_data: {
+            role?: string
+            provider?: string
+            providers?: string[]
+          } | null
+          created_at: string
+          email_confirmed_at: string | null
+          updated_at: string | null
+        }
+        Insert: never
+        Update: never
       }
     }
   }

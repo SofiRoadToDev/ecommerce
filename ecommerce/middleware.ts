@@ -1,60 +1,39 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  const token = await getToken({ 
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET
   })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
+  const isAdminLoginPath = request.nextUrl.pathname === '/admin/login'
 
-  // Refresh session if expired
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Protect /admin/* routes (except /admin/login)
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    // Allow access to login page without authentication
-    if (request.nextUrl.pathname === '/admin/login') {
-      // If already logged in as admin, redirect to dashboard
-      if (user) {
-        const role = user.user_metadata?.role || user.app_metadata?.role
-        if (role === 'admin') {
-          return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-        }
+  // Si está intentando acceder a rutas de admin
+  if (isAdminPath) {
+    // Si está en la página de login
+    if (isAdminLoginPath) {
+      // Si ya está autenticado como admin, redirigir al dashboard
+      if (token && token.role === 'admin') {
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url))
       }
-      return response
+      // Permitir acceso al login
+      return NextResponse.next()
     }
 
-    // For all other /admin/* routes, require authentication
-    if (!user) {
+    // Para todas las demás rutas de admin, requerir autenticación
+    if (!token) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
 
-    // Check if user has admin role
-    const role = user.user_metadata?.role || user.app_metadata?.role
-    if (role !== 'admin') {
+    // Verificar si el usuario tiene rol admin
+    if (token.role !== 'admin') {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
   }
 
-  return response
+  return NextResponse.next()
 }
 
 export const config = {

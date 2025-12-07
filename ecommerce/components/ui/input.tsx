@@ -1,21 +1,30 @@
+"use client"
 import { cn } from '@/lib/utils'
+import { useId } from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
 }
 
-export function Input({ label, error, className, id, ...props }: InputProps) {
-  // Generate a unique ID if none is provided
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`
-  
+export function Input({ label, error, className, id, name, ...props }: InputProps) {
+  // Use useId consistently to avoid hydration mismatches
+  const reactId = useId()
+  const inputId = id || reactId
+
   return (
     <div className="space-y-1">
-      <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+      <label 
+        htmlFor={inputId} 
+        className="block text-sm font-medium text-gray-700 mb-1"
+
+      >
         {label}
       </label>
       <input
         id={inputId}
+        name={name}
+
         className={cn(
           'w-full px-4 py-2.5 border rounded-lg text-gray-900',
           'placeholder:text-gray-400',
@@ -27,7 +36,7 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
         {...props}
       />
       {error && (
-        <p className="text-sm text-red-600 mt-1">
+        <p className="text-sm text-red-600 mt-1" suppressHydrationWarning={true}>
           {error}
         </p>
       )}

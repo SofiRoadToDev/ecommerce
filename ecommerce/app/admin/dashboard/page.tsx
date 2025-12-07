@@ -4,6 +4,7 @@ import { t } from '@/lib/i18n'
 import { Package, ShoppingCart, DollarSign, AlertCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { Order } from '@/types/models'
+import AdminUserInfo from '@/components/admin-user-info'
 
 interface DashboardStats {
   totalSales: number
@@ -82,9 +83,7 @@ export default async function AdminDashboardPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           {t('admin.welcomeBack')}
         </h1>
-        <p className="text-gray-600">
-          {user?.email}
-        </p>
+        <AdminUserInfo />
       </div>
 
       {/* Stats Cards Grid */}

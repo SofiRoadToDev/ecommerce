@@ -1,13 +1,15 @@
 import { cn } from '@/lib/utils'
+import { useId } from 'react'
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string
   error?: string
 }
 
-export function Textarea({ label, error, className, id, ...props }: TextareaProps) {
-  // Generate a unique ID if none is provided
-  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
+export function Textarea({ label, error, className, id, name, ...props }: TextareaProps) {
+  // Use explicit id, then name (from react-hook-form), then generate consistent ID
+  const reactId = useId()
+  const textareaId = id || (name ? `textarea-${name}` : reactId)
 
   return (
     <div className="space-y-1">
@@ -16,6 +18,7 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
       </label>
       <textarea
         id={textareaId}
+        name={name}
         className={cn(
           'w-full px-4 py-2.5 border rounded-lg text-gray-900',
           'placeholder:text-gray-400',

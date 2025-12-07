@@ -1,6 +1,5 @@
-// Archivo actualizado para usar NextAuth en lugar de Supabase directamente
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { authOptions } from './auth'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'

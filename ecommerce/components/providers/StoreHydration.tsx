@@ -1,13 +1,21 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useCartStore } from '@/store/cartStore'
 
 export function StoreHydration() {
+  const [hydrated, setHydrated] = useState(false)
+
   useEffect(() => {
-    // Manually hydrate the store on the client side
+    // Only hydrate on the client side
+    setHydrated(true)
     useCartStore.persist.rehydrate()
   }, [])
+
+  // Don't render anything until hydrated
+  if (!hydrated) {
+    return null
+  }
 
   return null
 }

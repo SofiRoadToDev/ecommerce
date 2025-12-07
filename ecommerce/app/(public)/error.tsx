@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { t } from '@/lib/i18n'
@@ -11,6 +12,12 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const handleGoHome = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="text-center bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
@@ -29,10 +36,7 @@ export default function Error({
             {t('common.retry')}
           </Button>
           
-          <Button 
-            onClick={() => window.location.href = '/'} 
-            variant="secondary"
-          >
+          <Button onClick={handleGoHome} variant="secondary">
             {t('common.back')}
           </Button>
         </div>

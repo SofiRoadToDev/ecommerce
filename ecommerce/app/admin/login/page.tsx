@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
+import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { t } from '@/lib/i18n'
-import type { Database } from '@/types/database'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -15,43 +14,60 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      console.log('🚀 Intentando login con NextAuth:', { email })
+      
+      const result = await signIn('credentials', {
         email,
         password,
+        redirect: false, // Manejar la redirección manualmente
       })
 
-      if (signInError) {
-        setError(signInError.message)
+      console.log('📊 Resultado del login:', result)
+
+      if (result?.error) {
+        console.error('❌ Error en login:', result.error)
+        
+        let errorMessage = result.error
+        if (result.error.includes('credentials')) {
+          errorMessage = 'Credenciales incorrectas'
+        } else if (result.error.includes('network')) {
+          errorMessage = 'Error de red - verifica tu conexión'
+        } else if (result.error.includes('unauthorized')) {
+          errorMessage = 'No autorizado - se requiere rol de administrador'
+        }
+        
+        setError(errorMessage)
         setLoading(false)
         return
       }
 
-      // Check if user has admin role
-      const role = data.user?.user_metadata?.role || data.user?.app_metadata?.role
-
-      if (role !== 'admin') {
-        await supabase.auth.signOut()
-        setError(t('admin.notAuthorized'))
-        setLoading(false)
-        return
+      if (result?.ok) {
+        console.log('✅ Login exitoso, redirigiendo...')
+        // Redirigir al dashboard
+        router.push('/admin/dashboard')
+        router.refresh()
       }
-
-      // Redirect to dashboard
-      router.push('/admin/dashboard')
-      router.refresh()
     } catch (err) {
-      setError(t('admin.loginError'))
+      console.error('💥 Error crítico en login:', err)
+      
+      let errorMessage = t('admin.loginError')
+      if (err instanceof Error) {
+        if (err.message.includes('fetch')) {
+          errorMessage = 'Error de conexión - verifica tu conexión a internet'
+        } else if (err.message.includes('network')) {
+          errorMessage = 'Error de red - el servidor no está disponible'
+        } else {
+          errorMessage = `Error: ${err.message}`
+        }
+      }
+      
+      setError(errorMessage)
       setLoading(false)
     }
   }
@@ -73,6 +89,8 @@ export default function AdminLoginPage() {
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
+              id="admin-email"
+              name="email"
               label={t('admin.email')}
               type="email"
               value={email}
@@ -83,6 +101,8 @@ export default function AdminLoginPage() {
             />
 
             <Input
+              id="admin-password"
+              name="password"
               label={t('admin.password')}
               type="password"
               value={password}
