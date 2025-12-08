@@ -1,19 +1,19 @@
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { getUser } from '@/lib/supabase/auth'
 
 export default async function AdminUserInfo() {
-  const session = await getServerSession(authOptions)
+  // Obtiene usuario desde Supabase en SSR
+  const user = await getUser()
   
-  if (!session?.user) {
+  if (!user) {
     return null
   }
 
   return (
     <div className="text-sm text-gray-600">
-      <span className="font-medium">{session.user.name || session.user.email}</span>
-      {session.user.role && (
+      <span className="font-medium">{user.user_metadata?.name || user.email}</span>
+      {(user.user_metadata as any)?.role && (
         <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-          {session.user.role}
+          {(user.user_metadata as any).role}
         </span>
       )}
     </div>

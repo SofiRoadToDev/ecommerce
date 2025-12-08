@@ -32,7 +32,7 @@ export interface Order {
   }
   total_amount: number
   status: OrderStatus
-  stripe_payment_id: string | null
+  payment_intent_id: string | null
 }
 
 export interface OrderItem {

@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { Navbar } from '@/components/public/Navbar'
 import { ProductCard } from '@/components/public/ProductCard'
 import { FilterButtons } from '@/components/public/FilterButtons'
@@ -67,37 +67,37 @@ export async function generateMetadata({ searchParams }: HomePageProps): Promise
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const supabase = createServerClient()
+  const supabase = await createClient()
   const params = await searchParams
   const category = params?.category
   const search = params?.search
-  
+
   // Build query
   let query = supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false })
-  
+
   if (category && category !== 'all') {
     query = query.eq('category', category)
   }
-  
+
   // Add search filter (contains/ilike)
   if (search && search.trim()) {
     query = query.ilike('title', `%${search.trim()}%`)
   }
-  
+
   let products: Product[] | null = null
   let error = null
 
   try {
     const { data, error: fetchError } = await query
     if (fetchError) throw fetchError
-    products = data
+    products = data as unknown as Product[]
   } catch (err) {
     console.error('Error fetching products:', err)
     error = err
-    
+
     // En desarrollo con valores dummy, mostrar productos de ejemplo
     if (process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('dummy')) {
       products = [
@@ -133,9 +133,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   // Generate structured data for SEO
   const productListJsonLd = products && products.length > 0
     ? generateProductListJsonLd(
-        products,
-        category ? categoryMetadata[category]?.title || 'Products' : 'All Products'
-      )
+      products,
+      category ? categoryMetadata[category]?.title || 'Products' : 'All Products'
+    )
     : null
 
   const webSiteJsonLd = generateWebSiteJsonLd()
@@ -158,13 +158,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           {/* Filter Buttons */}
           <FilterButtons />
         </div>
-        
+
         {/* Product Grid */}
         {products && products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product) => (
-              <ProductCard 
-                key={product.id} 
+              <ProductCard
+                key={product.id}
                 product={product}
               />
             ))}

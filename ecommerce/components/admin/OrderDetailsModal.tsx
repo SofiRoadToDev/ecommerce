@@ -157,15 +157,15 @@ export function OrderDetailsModal({ isOpen, onClose, order }: OrderDetailsModalP
                   <span className="text-base font-semibold text-gray-900">Total</span>
                   <span className="text-base font-bold text-gray-900">{formatPrice(order.total_amount)}</span>
                 </div>
-                {order.stripe_payment_id && (
+                {order.payment_intent_id && (
                   <div className="border-t border-gray-200 pt-3">
                     <p className="text-sm text-gray-600 mb-1">Payment ID</p>
                     <div className="flex items-center gap-2">
                       <code className="text-xs font-mono text-gray-900 bg-gray-50 px-2 py-1 rounded">
-                        {order.stripe_payment_id}
+                        {order.payment_intent_id}
                       </code>
                       <a
-                        href={`https://dashboard.stripe.com/payments/${order.stripe_payment_id}`}
+                        href={`https://dashboard.stripe.com/payments/${order.payment_intent_id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800 transition-colors"

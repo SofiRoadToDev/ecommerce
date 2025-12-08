@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isAdmin } from '@/lib/supabase/auth'
 import { updateOrderStatusSchema } from '@/lib/validations/order'
 import { z } from 'zod'
 
@@ -8,6 +9,20 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Verify admin authorization
+    if (!(await isAdmin())) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Admin access required'
+          }
+        },
+        { status: 401 }
+      )
+    }
+
     const { id: orderId } = await params
 
     // Validate order ID format

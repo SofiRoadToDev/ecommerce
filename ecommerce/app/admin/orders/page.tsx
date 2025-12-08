@@ -63,7 +63,7 @@ export default function OrdersPage() {
         },
         total_amount: order.total_amount,
         status: order.status,
-        stripe_payment_id: order.payment_id || null,
+        payment_intent_id: order.payment_id || null,
         items: order.order_items.map((item: any) => ({
           id: item.id,
           order_id: item.order_id,

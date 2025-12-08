@@ -1,17 +1,17 @@
 import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
 import AdminNavigation from './components/AdminNavigation'
+import { getUser } from '@/lib/supabase/auth'
 
+// Layout de admin: valida sesión y rol usando Supabase
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Obtener la sesión con NextAuth
-  const session = await getServerSession(authOptions)
-  
-  if (!session) {
+  // Obtiene usuario desde Supabase (SSR)
+  const user = await getUser()
+
+  if (!user) {
     // For login page, don't show the navigation
     return (
       <div className="min-h-screen bg-gray-50">
@@ -20,15 +20,15 @@ export default async function AdminLayout({
     )
   }
 
-  // Verificar si el usuario tiene rol admin
-  const role = session.user.role
-  
+  // Verificar rol admin desde metadata
+  const role = (user.user_metadata as any)?.role || (user.app_metadata as any)?.role
+
   if (role !== 'admin') {
     redirect('/admin/login')
   }
 
   return (
-    <div className="flex h-screen bg-gray-100" suppressHydrationWarning>
+    <div className="flex h-screen bg-slate-950/50" suppressHydrationWarning>
       <AdminNavigation>
         {children}
       </AdminNavigation>

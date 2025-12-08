@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { inter } from './fonts'
 import './globals.css'
-import AuthProvider from '@/components/auth-provider'
 
 export const metadata: Metadata = {
   title: {
@@ -62,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+        {children}
       </body>
     </html>
   )

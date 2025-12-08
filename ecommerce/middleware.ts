@@ -1,43 +1,70 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { createServerClient } from '@supabase/ssr'
+import type { Database } from '@/types/database'
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ 
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
   })
 
-  const isAdminPath = request.nextUrl.pathname.startsWith('/admin')
-  const isAdminLoginPath = request.nextUrl.pathname === '/admin/login'
-
-  // Si está intentando acceder a rutas de admin
-  if (isAdminPath) {
-    // Si está en la página de login
-    if (isAdminLoginPath) {
-      // Si ya está autenticado como admin, redirigir al dashboard
-      if (token && token.role === 'admin') {
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-      }
-      // Permitir acceso al login
-      return NextResponse.next()
+  // Inicializa Supabase con manejo avanzado de cookies para Next.js SSR
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          )
+          response = NextResponse.next({
+            request,
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
     }
+  )
 
-    // Para todas las demás rutas de admin, requerir autenticación
-    if (!token) {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
-    }
+  const pathname = request.nextUrl.pathname
+  const isAdminPath = pathname.startsWith('/admin')
 
-    // Verificar si el usuario tiene rol admin
-    if (token.role !== 'admin') {
-      return NextResponse.redirect(new URL('/admin/login', request.url))
+  // Solo ejecutamos lógica de auth en rutas de admin para optimizar
+  if (!isAdminPath) return response
+
+  // IMPORTANTE: getUser() refresca el token si es necesario
+  const { data: { user } } = await supabase.auth.getUser()
+  const role = user?.user_metadata?.role || user?.app_metadata?.role
+
+  const isAdminLoginPath = pathname === '/admin/login'
+
+  // Si está en login y ya es admin, redirige al dashboard
+  if (isAdminLoginPath) {
+    if (user && role === 'admin') {
+      return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }
+    return response
   }
 
-  return NextResponse.next()
+  // Protección de rutas admin
+  if (!user) {
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
+  if (role !== 'admin') {
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
+  return response
 }
 
 export const config = {
-  matcher: [
-    '/admin/:path*',
-  ],
+  matcher: ['/admin/:path*'],
 }

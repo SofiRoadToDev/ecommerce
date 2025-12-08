@@ -1,12 +1,14 @@
+
 'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { t } from '@/lib/i18n'
+import { createClient } from '@/lib/supabase/client'
 
+// Login de admin usando Supabase Auth
 export default function AdminLoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -20,42 +22,41 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      console.log('🚀 Intentando login con NextAuth:', { email })
-      
-      const result = await signIn('credentials', {
+      // Autentica con email/password en Supabase
+      const supabase = createClient()
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        redirect: false, // Manejar la redirección manualmente
       })
 
-      console.log('📊 Resultado del login:', result)
-
-      if (result?.error) {
-        console.error('❌ Error en login:', result.error)
-        
-        let errorMessage = result.error
-        if (result.error.includes('credentials')) {
-          errorMessage = 'Credenciales incorrectas'
-        } else if (result.error.includes('network')) {
-          errorMessage = 'Error de red - verifica tu conexión'
-        } else if (result.error.includes('unauthorized')) {
-          errorMessage = 'No autorizado - se requiere rol de administrador'
-        }
-        
-        setError(errorMessage)
+      if (signInError) {
+        console.error('❌ Error de Supabase Auth:', JSON.stringify(signInError, null, 2))
+        setError(signInError.message)
         setLoading(false)
         return
       }
 
-      if (result?.ok) {
-        console.log('✅ Login exitoso, redirigiendo...')
-        // Redirigir al dashboard
-        router.push('/admin/dashboard')
-        router.refresh()
+      // Verifica rol admin en metadata
+      const user = data.user
+      const role = user?.user_metadata?.role || user?.app_metadata?.role
+
+      if (role !== 'admin') {
+        console.warn('⚠️ Usuario autenticado pero sin rol de admin:', user?.id)
+        await supabase.auth.signOut()
+        setError('No autorizado - se requiere rol de administrador')
+        setLoading(false)
+        return
       }
+
+      // Redirige al dashboard
+      router.push('/admin/dashboard')
+      router.refresh()
     } catch (err) {
       console.error('💥 Error crítico en login:', err)
-      
+      if (typeof err === 'object' && err !== null) {
+        console.error('Detalles del error:', JSON.stringify(err, null, 2))
+      }
+
       let errorMessage = t('admin.loginError')
       if (err instanceof Error) {
         if (err.message.includes('fetch')) {
@@ -66,7 +67,7 @@ export default function AdminLoginPage() {
           errorMessage = `Error: ${err.message}`
         }
       }
-      
+
       setError(errorMessage)
       setLoading(false)
     }

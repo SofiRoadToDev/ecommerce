@@ -40,11 +40,11 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
   ]
 
   return (
-    <div suppressHydrationWarning>
+    <div className="flex h-full w-full" suppressHydrationWarning>
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -53,7 +53,7 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
       <aside
         className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-64 bg-gray-900 text-white
+          w-64 bg-slate-900/80 backdrop-blur-xl border-r border-white/10 text-slate-300
           transform transition-transform duration-300 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -61,11 +61,13 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-800">
-            <h1 className="text-xl font-bold">{t('admin.title')}</h1>
+          <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">
+              {t('admin.title')}
+            </h1>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-800"
+              className="lg:hidden p-2 rounded-lg hover:bg-white/10 text-white"
             >
               <X className="w-5 h-5" />
             </button>
@@ -83,43 +85,45 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={`
-                    flex items-center gap-3 px-4 py-2.5 rounded-lg
-                    transition-colors
-                    ${
-                      isActive
-                        ? 'bg-gray-800 text-white'
-                        : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                    flex items-center gap-3 px-4 py-3 rounded-xl
+                    transition-all duration-200
+                    ${isActive
+                      ? 'bg-primary-500/10 text-primary-400 border border-primary-500/20 shadow-lg shadow-primary-500/5'
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }
                   `}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span>{item.name}</span>
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-primary-400' : 'text-slate-500 group-hover:text-white'}`} />
+                  <span className="font-medium">{item.name}</span>
                 </Link>
               )
             })}
           </nav>
 
           {/* Logout */}
-          <div className="p-4 border-t border-gray-800">
+          <div className="p-4 border-t border-white/10">
             <AdminLogout />
           </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden bg-slate-950/50">
         {/* Top bar (mobile) */}
-        <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
+        <header className="lg:hidden glass border-b border-white/10 px-4 py-3 flex items-center justify-between">
+          <h1 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400">
+            {t('admin.title')}
+          </h1>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-2 rounded-lg hover:bg-white/10 text-white"
           >
             <Menu className="w-6 h-6" />
           </button>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-8">
+        <main className="flex-1 overflow-auto p-4 lg:p-8">
           {children}
         </main>
       </div>
