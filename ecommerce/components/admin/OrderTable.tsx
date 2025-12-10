@@ -92,14 +92,14 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
             placeholder="Search by customer email..."
             value={searchEmail}
             onChange={(e) => setSearchEmail(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all dark:bg-slate-900 dark:border-slate-700 dark:text-white"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -114,10 +114,10 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
 
       {/* Table */}
       {filteredOrders.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center dark:bg-slate-900 dark:border-slate-700">
           <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No orders found</h3>
-          <p className="text-gray-600">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No orders found</h3>
+          <p className="text-gray-600 dark:text-gray-400">
             {searchEmail || statusFilter !== 'all'
               ? 'Try adjusting your filters'
               : 'Orders will appear here once customers make purchases'}
@@ -127,9 +127,9 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Order ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -155,23 +155,23 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
                   const isUpdating = updatingOrderId === order.id
 
                   return (
-                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-mono text-gray-900">
+                        <span className="text-sm font-mono text-gray-900 dark:text-gray-300">
                           {shortId(order.id)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-gray-900 dark:text-gray-300">
                           {formatDate(order.created_at)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{order.customer_name}</div>
+                        <div className="text-sm text-gray-900 dark:text-gray-200">{order.customer_name}</div>
                         <div className="text-sm text-gray-500">{order.customer_email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
                           {formatPrice(order.total_amount)}
                         </span>
                       </td>
@@ -195,7 +195,7 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
                             value={order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
                             disabled={isUpdating}
-                            className="appearance-none bg-transparent text-gray-600 hover:text-gray-900 font-medium pr-6 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="appearance-none bg-transparent text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium pr-6 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
                             <option value={order.status} disabled>
                               {isUpdating ? 'Updating...' : 'Update Status'}
@@ -222,7 +222,7 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
 
       {/* Results count */}
       {filteredOrders.length > 0 && (
-        <div className="text-sm text-gray-600 text-center">
+        <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
           Showing {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
           {(searchEmail || statusFilter !== 'all') && ` (filtered from ${orders.length} total)`}
         </div>

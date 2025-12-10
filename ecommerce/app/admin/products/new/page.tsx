@@ -17,13 +17,13 @@ export default async function NewProductPage() {
       <div className="flex items-center gap-4">
         <Link
           href="/admin/products"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Product</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Create a new product in your inventory
           </p>
         </div>

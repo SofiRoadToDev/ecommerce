@@ -146,7 +146,7 @@ export function ImageUpload({
 
   return (
     <div className={cn('space-y-2', className)}>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Product Image
       </label>
 
@@ -161,17 +161,18 @@ export function ImageUpload({
               'w-full h-48 border-2 border-dashed rounded-lg',
               'flex flex-col items-center justify-center',
               'transition-colors cursor-pointer',
+              'dark:border-slate-700',
               uploading
-                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50',
-              error && 'border-red-300 bg-red-50'
+                ? 'border-gray-300 bg-gray-50 dark:bg-slate-900 cursor-not-allowed'
+                : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-slate-800 dark:hover:border-blue-500',
+              error && 'border-red-300 bg-red-50 dark:bg-red-900/10 dark:border-red-800'
             )}
           >
             <Upload className="w-12 h-12 text-gray-400 mb-3" />
-            <p className="text-sm text-gray-600 mb-1">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
               Click to upload product image
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-500">
               PNG, JPG, WebP or GIF (max 5MB)
             </p>
           </button>
@@ -212,7 +213,7 @@ export function ImageUpload({
 
       {/* Progress bar */}
       {uploading && progress > 0 && (
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
           <div
             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
@@ -222,7 +223,7 @@ export function ImageUpload({
 
       {/* Upload status */}
       {uploading && (
-        <p className="text-sm text-gray-600 text-center">
+        <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
           Uploading... {progress}%
         </p>
       )}
@@ -237,7 +238,7 @@ export function ImageUpload({
 
       {/* Helper text */}
       {!error && !uploading && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Recommended size: 800x800px or larger. Images will be displayed as thumbnails in the product list.
         </p>
       )}

@@ -18,8 +18,8 @@ const ImageUpload = dynamic(() => import('./ImageUpload').then(mod => ({ default
   ssr: false,
   loading: () => (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-      <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product Image</label>
+      <div className="w-full h-48 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-slate-900/50">
         <p className="text-sm text-gray-400">Loading image uploader...</p>
       </div>
     </div>
