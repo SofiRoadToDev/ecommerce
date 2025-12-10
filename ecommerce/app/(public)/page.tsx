@@ -8,7 +8,8 @@ import type { Product } from '@/types/models'
 import type { Metadata } from 'next'
 import { generateProductListJsonLd, generateWebSiteJsonLd, JsonLd } from '@/lib/seo/structured-data'
 
-export const dynamic = 'force-dynamic'
+// ISR: Revalidate every 60 seconds
+export const revalidate = 60
 
 interface HomePageProps {
   searchParams: Promise<{ category?: string; search?: string }>
