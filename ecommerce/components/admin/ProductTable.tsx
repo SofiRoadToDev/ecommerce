@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Edit2, Trash2, AlertTriangle, Search } from 'lucide-react'
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Pagination } from '@/components/ui/Pagination'
 import type { Product } from '@/types/models'
 
 interface ProductTableProps {
@@ -30,6 +31,8 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
     product: Product | null
   }>({ open: false, product: null })
   const [deleting, setDeleting] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   // Get unique categories from products
   const categories = useMemo(() => {
@@ -50,6 +53,17 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
       return matchesSearch && matchesCategory
     })
   }, [products, searchQuery, categoryFilter])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, categoryFilter])
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
 
   const handleDeleteClick = (product: Product) => {
     setDeleteConfirm({ open: true, product })
@@ -102,11 +116,6 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
         </select>
       </div>
 
-      {/* Results count */}
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        Showing {filteredProducts.length} of {products.length} products
-      </p>
-
       {/* Products Table */}
       <Table>
         <TableHeader>
@@ -123,7 +132,7 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
           {filteredProducts.length === 0 ? (
             <TableEmpty message="No products found" colSpan={6} />
           ) : (
-            filteredProducts.map((product) => (
+            paginatedProducts.map((product) => (
               <TableRow key={product.id}>
                 {/* Image */}
                 <TableCell>
@@ -207,6 +216,22 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
           )}
         </TableBody>
       </Table>
+
+      {/* Pagination */}
+      {filteredProducts.length > 0 && (
+        <>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+            {(searchQuery || categoryFilter !== 'all') && ` (filtered from ${products.length} total)`}
+          </p>
+        </>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm.open && deleteConfirm.product && (

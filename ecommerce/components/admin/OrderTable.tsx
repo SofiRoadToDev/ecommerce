@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { OrderWithDetails, OrderStatus } from '@/types/models'
 import { Search, Package, ChevronDown } from 'lucide-react'
+import { Pagination } from '@/components/ui/Pagination'
 
 interface OrderTableProps {
   orders: OrderWithDetails[]
@@ -45,12 +46,25 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
   const [searchEmail, setSearchEmail] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
 
   const filteredOrders = orders.filter(order => {
     const matchesEmail = !searchEmail || order.customer_email.toLowerCase().includes(searchEmail.toLowerCase())
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter
     return matchesEmail && matchesStatus
   })
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchEmail, statusFilter])
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     setUpdatingOrderId(orderId)
@@ -150,7 +164,7 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                {filteredOrders.map((order) => {
+                {paginatedOrders.map((order) => {
                   const config = statusConfig[order.status]
                   const isUpdating = updatingOrderId === order.id
 
@@ -220,12 +234,20 @@ export function OrderTable({ orders, onStatusUpdate, onViewDetails }: OrderTable
         </div>
       )}
 
-      {/* Results count */}
+      {/* Pagination */}
       {filteredOrders.length > 0 && (
-        <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
-          Showing {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
-          {(searchEmail || statusFilter !== 'all') && ` (filtered from ${orders.length} total)`}
-        </div>
+        <>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+
+          <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
+            {(searchEmail || statusFilter !== 'all') && ` (filtered from ${orders.length} total)`}
+          </div>
+        </>
       )}
     </div>
   )

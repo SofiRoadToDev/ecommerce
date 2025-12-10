@@ -42,7 +42,7 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
             </svg>
           </div>
           <p className="text-gray-600 mb-6 text-center">{t('cart.empty')}</p>
-          <Button onClick={onClose} variant="primary">
+          <Button onClick={onClose} variant="primary" className="bg-black hover:bg-gray-900">
             {t('cart.continueShopping')}
           </Button>
         </div>
@@ -82,22 +82,22 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="p-1 rounded-md hover:bg-gray-100"
+                      className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-900 transition-colors disabled:opacity-50"
                       aria-label="Decrease quantity"
                       disabled={isNaN(item.quantity) || item.quantity <= 1}
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-4 h-4 text-white" />
                     </button>
-                    <span className="text-sm font-medium w-8 text-center">
+                    <span className="text-sm font-semibold w-8 text-center text-gray-900">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       disabled={item.quantity >= item.stock}
-                      className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       aria-label="Increase quantity"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 text-white" />
                     </button>
                     <button
                       onClick={() => removeItem(item.id)}
@@ -121,12 +121,12 @@ export function CartSheet({ open, onClose }: CartSheetProps) {
 
           {/* Footer with total and checkout */}
           <div className="border-t border-gray-200 px-6 py-4 space-y-4 bg-gray-50">
-            <div className="flex items-center justify-between text-lg font-semibold">
+            <div className="flex items-center justify-between text-lg font-semibold text-black">
               <span>{t('cart.total')}</span>
               <span>{formatPrice(total)}</span>
             </div>
             <Link href="/checkout" onClick={onClose}>
-              <Button variant="primary" size="lg" className="w-full">
+              <Button variant="primary" size="lg" className="w-full bg-black hover:bg-gray-900">
                 {t('cart.checkout')}
               </Button>
             </Link>
