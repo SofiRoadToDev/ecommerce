@@ -78,14 +78,21 @@ export async function POST(request: NextRequest) {
       const captureId = body.resource.id
       const amount = parseFloat(body.resource.amount.value)
 
+      console.log('📦 Processing payment capture:')
+      console.log('  - Order ID:', orderId)
+      console.log('  - Capture ID:', captureId)
+      console.log('  - Amount:', amount)
+
       if (!orderId) {
-        console.error('No order ID in webhook')
-        // Always return 200 to PayPal to prevent retries
+        console.error('❌ No order ID in webhook payload')
+        console.error('Full webhook body:', JSON.stringify(body, null, 2))
         return NextResponse.json({ received: true, error: 'No order ID' })
       }
 
       // Get pending order data
       const supabase = createAdminClient()
+      console.log('🔍 Searching pending_orders for:', orderId)
+
       // Workaround: Supabase types issue (see bugs_to_fix.md)
       const { data: pendingOrder, error: fetchError } = await (supabase
         .from('pending_orders') as any)
@@ -94,21 +101,38 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (fetchError || !pendingOrder) {
-        console.error('Pending order not found:', fetchError)
-        // Always return 200 to PayPal to prevent retries
+        console.error('❌ Pending order NOT FOUND')
+        console.error('  - PayPal Order ID:', orderId)
+        console.error('  - Fetch error:', fetchError)
+        console.error('  - Checking all pending orders in DB...')
+
+        // Debug: List all pending orders
+        const { data: allPending } = await (supabase
+          .from('pending_orders') as any)
+          .select('paypal_order_id, created_at')
+
+        console.error('  - All pending orders:', allPending)
         return NextResponse.json({ received: true, error: 'Order not found' })
       }
+
+      console.log('✅ Found pending order:', {
+        id: pendingOrder.id,
+        customer: pendingOrder.customer_email,
+        total: pendingOrder.total_amount,
+        items: pendingOrder.order_items.length
+      })
 
       // Validate amount matches
       const amountDifference = Math.abs(amount - parseFloat(pendingOrder.total_amount))
       if (amountDifference > 0.01) {
-        console.error(
-          `Amount mismatch: expected ${pendingOrder.total_amount}, got ${amount}`
+        console.warn(
+          `⚠️  Amount mismatch: expected ${pendingOrder.total_amount}, got ${amount}`
         )
         // Log but continue - PayPal amount is authoritative
       }
 
       // Create order in database
+      console.log('💾 Creating order in database...')
       // Workaround: Supabase types issue (see bugs_to_fix.md)
       const { data: order, error: orderError } = await (supabase
         .from('orders') as any)
@@ -124,8 +148,10 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (orderError || !order) {
-        console.error('Error creating order:', orderError)
-        // Always return 200 to PayPal, but mark as error
+        console.error('❌ FAILED to create order in database')
+        console.error('  - Error:', orderError)
+        console.error('  - Customer:', pendingOrder.customer_email)
+        console.error('  - Amount:', amount)
         return NextResponse.json({
           received: true,
           error: 'Failed to create order',
@@ -133,7 +159,10 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      console.log('✅ Order created successfully:', order.id)
+
       // Create order items
+      console.log(`📋 Creating ${pendingOrder.order_items.length} order items...`)
       const orderItems = pendingOrder.order_items.map((item: any) => ({
         order_id: order.id,
         product_id: item.id,
@@ -146,10 +175,16 @@ export async function POST(request: NextRequest) {
         .insert(orderItems)
 
       if (itemsError) {
-        console.error('Error creating order items:', itemsError)
+        console.error('❌ FAILED to create order items:', itemsError)
+        console.error('  - Order ID:', order.id)
+        console.error('  - Items:', orderItems)
+        // Continue anyway - order is already created
+      } else {
+        console.log('✅ Order items created successfully')
       }
 
       // Update stock for each product
+      console.log('📦 Updating stock for products...')
       for (const item of pendingOrder.order_items) {
         // Workaround: Supabase types issue (see bugs_to_fix.md)
         const { error: stockError } = await (supabase as any).rpc('decrement_stock', {
@@ -158,14 +193,17 @@ export async function POST(request: NextRequest) {
         })
 
         if (stockError) {
-          console.error(`Error updating stock for product ${item.id}:`, stockError)
+          console.error(`❌ Failed to update stock for product ${item.id}:`, stockError)
+        } else {
+          console.log(`  ✅ Updated stock for ${item.title}: -${item.quantity}`)
         }
       }
 
       // Send confirmation email
+      console.log('📧 Sending confirmation email...')
       try {
         const { sendOrderConfirmationEmail } = await import('@/lib/email/send')
-        
+
         const emailData = {
           orderId: order.id,
           customerName: pendingOrder.customer_name,
@@ -180,20 +218,28 @@ export async function POST(request: NextRequest) {
         }
 
         await sendOrderConfirmationEmail(emailData)
-        console.log('Confirmation email sent for order:', order.id)
+        console.log('✅ Confirmation email sent to:', pendingOrder.customer_email)
       } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError)
+        console.error('❌ Failed to send confirmation email:', emailError)
         // Continue even if email fails - payment was successful
       }
 
       // Delete pending order
+      console.log('🧹 Cleaning up pending order...')
       // Workaround: Supabase types issue (see bugs_to_fix.md)
-      await (supabase
+      const { error: deleteError } = await (supabase
         .from('pending_orders') as any)
         .delete()
         .eq('paypal_order_id', orderId)
 
-      console.log('Order processed successfully:', order.id)
+      if (deleteError) {
+        console.error('⚠️  Failed to delete pending order:', deleteError)
+        // Not critical - order is already processed
+      } else {
+        console.log('✅ Pending order cleaned up')
+      }
+
+      console.log('🎉 Order processed successfully:', order.id)
       return NextResponse.json({ received: true, orderId: order.id })
     }
 

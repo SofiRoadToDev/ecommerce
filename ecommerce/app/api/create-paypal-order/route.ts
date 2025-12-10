@@ -113,9 +113,16 @@ export async function POST(request: NextRequest) {
       .insert(pendingOrder)
 
     if (storeError) {
-      console.error('Error storing pending order:', storeError)
-      // Continue anyway, we can still process the payment
+      console.error('CRITICAL: Failed to store pending order:', storeError)
+      console.error('PayPal Order ID:', order.id)
+      console.error('Pending order data:', pendingOrder)
+      return NextResponse.json(
+        { error: 'Failed to store order data. Please try again.' },
+        { status: 500 }
+      )
     }
+
+    console.log('✅ Pending order stored successfully:', order.id)
 
     // 5. Return order ID to client
     return NextResponse.json({
