@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { Suspense } from 'react'
 import { Navbar } from '@/components/public/Navbar'
 import { ProductCard } from '@/components/public/ProductCard'
 import { FilterButtons } from '@/components/public/FilterButtons'
@@ -6,6 +7,8 @@ import { t } from '@/lib/i18n'
 import type { Product } from '@/types/models'
 import type { Metadata } from 'next'
 import { generateProductListJsonLd, generateWebSiteJsonLd, JsonLd } from '@/lib/seo/structured-data'
+
+export const dynamic = 'force-dynamic'
 
 interface HomePageProps {
   searchParams: Promise<{ category?: string; search?: string }>
@@ -156,7 +159,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             {t('products.title')}
           </h1>
           {/* Filter Buttons */}
-          <FilterButtons />
+          <Suspense fallback={<div className="h-12 w-full animate-pulse bg-gray-100 rounded-lg" />}>
+            <FilterButtons />
+          </Suspense>
         </div>
 
         {/* Product Grid */}

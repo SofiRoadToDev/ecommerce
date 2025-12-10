@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { t } from '@/lib/i18n'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, cn } from '@/lib/utils'
 import { useCartStore } from '@/store/cartStore'
 import type { Product } from '@/types/models'
 
@@ -24,7 +24,10 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <div className={`group relative bg-white rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-100 ${isOutOfStock ? 'opacity-60' : ''}`}>
+    <div className={cn(
+      "group relative bg-white rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-100",
+      isOutOfStock && "opacity-60"
+    )}>
       {/* Image container */}
       <div className="aspect-[4/5] relative overflow-hidden rounded-xl mb-4 bg-gray-50">
         {product.image_url ? (

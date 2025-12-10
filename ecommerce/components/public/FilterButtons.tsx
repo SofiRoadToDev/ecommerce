@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { t } from '@/lib/i18n'
+import { cn } from '@/lib/utils'
 
 // Mapeo de valores de base de datos a keys de traducción
 const CATEGORY_MAP: Record<string, string> = {
@@ -76,7 +77,10 @@ export function FilterButtons() {
               variant="ghost"
               size="sm"
               onClick={() => handleFilter(category)}
-              className={`whitespace-nowrap ${isActive ? 'bg-slate-900 text-white hover:bg-slate-800' : 'hover:bg-gray-100'}`}
+              className={cn(
+                "whitespace-nowrap",
+                isActive ? "bg-slate-900 text-white hover:bg-slate-800" : "hover:bg-gray-100"
+              )}
             >
               {label}
             </Button>

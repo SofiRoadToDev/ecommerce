@@ -11,9 +11,9 @@ interface TableProps extends React.TableHTMLAttributes<HTMLTableElement> {
 
 export function Table({ children, className, ...props }: TableProps) {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+    <div className="w-full overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-800">
       <table
-        className={cn('w-full text-sm text-left text-gray-700', className)}
+        className={cn('w-full text-sm text-left text-gray-700 dark:text-gray-200', className)}
         {...props}
       >
         {children}
@@ -29,7 +29,7 @@ interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement>
 export function TableHeader({ children, className, ...props }: TableHeaderProps) {
   return (
     <thead
-      className={cn('bg-gray-50 border-b border-gray-200', className)}
+      className={cn('bg-gray-50 dark:bg-slate-900/50 border-b border-gray-200 dark:border-slate-800', className)}
       {...props}
     >
       {children}
@@ -43,7 +43,7 @@ interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {
 
 export function TableBody({ children, className, ...props }: TableBodyProps) {
   return (
-    <tbody className={cn('divide-y divide-gray-200 bg-white', className)} {...props}>
+    <tbody className={cn('divide-y divide-gray-200 dark:divide-slate-800 bg-white dark:bg-transparent', className)} {...props}>
       {children}
     </tbody>
   )
@@ -56,7 +56,7 @@ interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
 export function TableRow({ children, className, ...props }: TableRowProps) {
   return (
     <tr
-      className={cn('hover:bg-gray-50 transition-colors', className)}
+      className={cn('hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors', className)}
       {...props}
     >
       {children}
@@ -82,8 +82,8 @@ export function TableHead({
   return (
     <th
       className={cn(
-        'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-        sortable && 'cursor-pointer select-none hover:bg-gray-100',
+        'px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider',
+        sortable && 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-slate-800',
         className
       )}
       onClick={sortable ? onSort : undefined}

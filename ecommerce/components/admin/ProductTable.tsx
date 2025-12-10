@@ -84,14 +84,14 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
             placeholder="Search products by title or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-900 dark:border-slate-700 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
+          className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer dark:bg-slate-900 dark:border-slate-700 dark:text-white"
         >
           <option value="all">All Categories</option>
           {categories.map(category => (
@@ -103,7 +103,7 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-600 dark:text-gray-400">
         Showing {filteredProducts.length} of {products.length} products
       </p>
 
@@ -147,11 +147,11 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
                 {/* Title */}
                 <TableCell>
                   <div className="max-w-xs">
-                    <p className="font-medium text-gray-900 truncate">
+                    <p className="font-medium text-gray-900 dark:text-gray-200 truncate">
                       {product.title}
                     </p>
                     {product.description && (
-                      <p className="text-sm text-gray-500 truncate mt-1">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
                         {product.description}
                       </p>
                     )}
@@ -167,16 +167,15 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
 
                 {/* Price */}
                 <TableCell>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-gray-900 dark:text-gray-200">
                     ${product.price.toFixed(2)}
                   </span>
                 </TableCell>
 
                 {/* Stock */}
                 <TableCell>
-                  <span className={`font-medium ${
-                    product.stock < 5 ? 'text-red-600' : 'text-gray-900'
-                  }`}>
+                  <span className={`font-medium ${product.stock < 5 ? 'text-red-600' : 'text-gray-900 dark:text-gray-200'
+                    }`}>
                     {product.stock}
                   </span>
                   {product.stock < 5 && (
@@ -219,19 +218,19 @@ export function ProductTable({ products, onDelete }: ProductTableProps) {
           />
 
           {/* Modal */}
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
 
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   Delete Product
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Are you sure you want to delete{' '}
-                  <strong>{deleteConfirm.product.title}</strong>? This action
+                  <strong className="text-gray-900 dark:text-white">{deleteConfirm.product.title}</strong>? This action
                   cannot be undone.
                 </p>
 

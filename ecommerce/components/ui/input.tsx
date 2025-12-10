@@ -14,9 +14,9 @@ export function Input({ label, error, className, id, name, ...props }: InputProp
 
   return (
     <div className="space-y-1">
-      <label 
-        htmlFor={inputId} 
-        className="block text-sm font-medium text-gray-700 mb-1"
+      <label
+        htmlFor={inputId}
+        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
 
       >
         {label}
@@ -26,7 +26,8 @@ export function Input({ label, error, className, id, name, ...props }: InputProp
         name={name}
 
         className={cn(
-          'w-full px-4 py-2.5 border rounded-lg text-gray-900',
+          'w-full px-4 py-2.5 border rounded-lg',
+          'text-gray-900 dark:text-white dark:bg-slate-900 dark:border-slate-700',
           'placeholder:text-gray-400',
           'focus:ring-2 focus:ring-blue-500 focus:border-transparent',
           'transition-all',
