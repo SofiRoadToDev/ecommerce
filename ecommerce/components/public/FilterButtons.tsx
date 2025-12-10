@@ -60,7 +60,7 @@ export function FilterButtons() {
           className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
         />
       </div>
-      
+
       {/* Category Buttons - Full width on mobile, half on desktop */}
       <div className="w-full md:w-1/2 flex gap-2 overflow-x-auto pb-2">
         {VISIBLE_CATEGORIES.map((category) => {
@@ -73,10 +73,10 @@ export function FilterButtons() {
           return (
             <Button
               key={category}
-              variant={isActive ? 'primary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => handleFilter(category)}
-              className="whitespace-nowrap"
+              className={`whitespace-nowrap ${isActive ? 'bg-slate-900 text-white hover:bg-slate-800' : 'hover:bg-gray-100'}`}
             >
               {label}
             </Button>
