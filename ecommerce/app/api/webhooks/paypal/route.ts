@@ -186,6 +186,13 @@ export async function POST(request: NextRequest) {
       try {
         const { sendOrderConfirmationEmail } = await import('@/lib/email/send')
 
+        // Fetch branding info
+        const { data: branding } = await (supabase
+          .from('branding') as any) // Workaround for potential type mismatch
+          .select('brand_name, logo_url, primary_color')
+          .limit(1)
+          .single()
+
         const emailData = {
           orderId: order.id,
           customerName: order.customer_name,
@@ -196,15 +203,19 @@ export async function POST(request: NextRequest) {
             title: item.products?.title || 'Product', // Handle joined data
             quantity: item.quantity,
             price: item.price_at_purchase
-          })) : []
+          })) : [],
+          // Branding (optional)
+          brandName: branding?.brand_name || 'Sofia Store', // Fallback name
+          logoUrl: branding?.logo_url || undefined,
+          primaryColor: branding?.primary_color || undefined
         }
 
         await sendOrderConfirmationEmail(emailData)
         console.log('✅ Confirmation email sent to:', order.customer_email)
       } catch (emailError) {
         console.error('❌ Failed to send confirmation email:', emailError)
+        // Continue even if email fails - payment was successful
       }
-
       console.log('🎉 Order processed successfully:', order.id)
       return NextResponse.json({ received: true, orderId: order.id })
     }

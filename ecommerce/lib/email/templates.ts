@@ -16,12 +16,24 @@ export interface OrderEmailData {
   }>
   trackingNumber?: string
   estimatedDelivery?: string
+  // Branding fields
+  brandName?: string
+  logoUrl?: string
+  primaryColor?: string
 }
 
 /**
  * Base email HTML template with consistent styling
  */
-function baseEmailTemplate(content: string, subject: string): string {
+function baseEmailTemplate(content: string, subject: string, branding?: { name?: string, logo?: string, color?: string }): string {
+  const primaryColor = branding?.color || '#2563eb'
+  const brandName = branding?.name || 'Your Store'
+
+  // Header content: Logo if available, otherwise Text
+  const headerContent = branding?.logo
+    ? `<img src="${branding.logo}" alt="${brandName}" style="max-height: 50px; max-width: 200px; height: auto;">`
+    : `<h1>${brandName}</h1>`
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -47,7 +59,7 @@ function baseEmailTemplate(content: string, subject: string): string {
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     .header {
-      background-color: #2563eb;
+      background-color: ${primaryColor};
       color: white;
       padding: 32px;
       text-align: center;
@@ -56,6 +68,11 @@ function baseEmailTemplate(content: string, subject: string): string {
       margin: 0;
       font-size: 24px;
       font-weight: 600;
+      color: white;
+    }
+    .header img {
+      display: block;
+      margin: 0 auto;
     }
     .content {
       padding: 32px;
@@ -151,7 +168,7 @@ function baseEmailTemplate(content: string, subject: string): string {
     }
     .button {
       display: inline-block;
-      background-color: #2563eb;
+      background-color: ${primaryColor};
       color: white;
       padding: 12px 24px;
       border-radius: 6px;
@@ -161,7 +178,7 @@ function baseEmailTemplate(content: string, subject: string): string {
     }
     .tracking-info {
       background-color: #eff6ff;
-      border: 1px solid #2563eb;
+      border: 1px solid ${primaryColor};
       border-radius: 6px;
       padding: 16px;
       margin: 16px 0;
@@ -179,6 +196,9 @@ function baseEmailTemplate(content: string, subject: string): string {
 </head>
 <body>
   <div class="container">
+    <div class="header">
+      ${headerContent}
+    </div>
     ${content}
   </div>
 </body>
@@ -191,17 +211,23 @@ function baseEmailTemplate(content: string, subject: string): string {
  */
 export function orderConfirmedTemplate(data: OrderEmailData): { subject: string; html: string } {
   const subject = `Order Confirmed - #${data.orderId}`
-  
+  const branding = {
+    name: data.brandName,
+    logo: data.logoUrl,
+    color: data.primaryColor
+  }
+
   const content = `
-    <div class="header">
-      <h1>Order Confirmed!</h1>
-    </div>
     <div class="content">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="margin: 0; color: #111827; font-size: 24px;">Order Confirmed!</h2>
+      </div>
+
       <p>Hi ${data.customerName},</p>
       <p>Thank you for your order! We've received your payment and are preparing your items for shipment.</p>
       
       <div class="status-badge status-confirmed">
-        ✓ Order Confirmed
+        ✓ Order Payed
       </div>
 
       <div class="order-details">
@@ -244,7 +270,7 @@ export function orderConfirmedTemplate(data: OrderEmailData): { subject: string;
 
   return {
     subject,
-    html: baseEmailTemplate(content, subject)
+    html: baseEmailTemplate(content, subject, branding)
   }
 }
 
@@ -253,7 +279,7 @@ export function orderConfirmedTemplate(data: OrderEmailData): { subject: string;
  */
 export function orderProcessingTemplate(data: OrderEmailData): { subject: string; html: string } {
   const subject = `Order Processing - #${data.orderId}`
-  
+
   const content = `
     <div class="header">
       <h1>Your Order is Being Processed</h1>
@@ -299,7 +325,7 @@ export function orderProcessingTemplate(data: OrderEmailData): { subject: string
  */
 export function orderShippedTemplate(data: OrderEmailData): { subject: string; html: string } {
   const subject = `Order Shipped - #${data.orderId}`
-  
+
   const trackingInfo = data.trackingNumber ? `
     <div class="tracking-info">
       <strong>Tracking Number:</strong> ${data.trackingNumber}<br>
@@ -354,7 +380,7 @@ export function orderShippedTemplate(data: OrderEmailData): { subject: string; h
  */
 export function orderReadyForPickupTemplate(data: OrderEmailData): { subject: string; html: string } {
   const subject = `Order Ready for Pickup - #${data.orderId}`
-  
+
   const content = `
     <div class="header">
       <h1>Your Order is Ready for Pickup!</h1>
