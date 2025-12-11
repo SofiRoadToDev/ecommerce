@@ -8,7 +8,9 @@ import {
   Package,
   ShoppingCart,
   Menu,
-  X
+  X,
+  Tags,
+  Palette
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import AdminLogout from '@/components/admin-logout'
@@ -33,9 +35,19 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
       icon: Package
     },
     {
+      name: t('admin.categories'),
+      href: '/admin/categories',
+      icon: Tags
+    },
+    {
       name: t('admin.orders'),
       href: '/admin/orders',
       icon: ShoppingCart
+    },
+    {
+      name: t('admin.branding'),
+      href: '/admin/branding',
+      icon: Palette
     },
   ]
 

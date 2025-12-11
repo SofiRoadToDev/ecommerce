@@ -139,45 +139,49 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Total Products */}
-        <div className="glass-card group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
-              <Package className="w-8 h-8 text-violet-400" />
+        <Link href="/admin/products" className="block">
+          <div className="glass-card group cursor-pointer transition-transform hover:scale-105">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-violet-500/10 rounded-xl group-hover:bg-violet-500/20 transition-colors">
+                <Package className="w-8 h-8 text-violet-400" />
+              </div>
             </div>
+            <h3 className="text-sm font-medium text-slate-400 mb-1">
+              {t('admin.totalProducts')}
+            </h3>
+            <p className="text-3xl font-bold text-slate-100">
+              {stats.totalProducts}
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              Active inventory items
+            </p>
           </div>
-          <h3 className="text-sm font-medium text-slate-400 mb-1">
-            {t('admin.totalProducts')}
-          </h3>
-          <p className="text-3xl font-bold text-slate-100">
-            {stats.totalProducts}
-          </p>
-          <p className="text-xs text-slate-500 mt-2">
-            Active inventory items
-          </p>
-        </div>
+        </Link>
 
         {/* Low Stock Alerts */}
-        <div className="glass-card group">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-amber-500/10 rounded-xl group-hover:bg-amber-500/20 transition-colors">
-              <AlertCircle className="w-8 h-8 text-amber-400" />
+        <Link href="/admin/products/low-stock" className="block">
+          <div className="glass-card group cursor-pointer transition-transform hover:scale-105">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-amber-500/10 rounded-xl group-hover:bg-amber-500/20 transition-colors">
+                <AlertCircle className="w-8 h-8 text-amber-400" />
+              </div>
+              {stats.lowStockCount > 0 && (
+                <span className="text-xs font-medium px-2 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                  Action needed
+                </span>
+              )}
             </div>
-            {stats.lowStockCount > 0 && (
-              <span className="text-xs font-medium px-2 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                Action needed
-              </span>
-            )}
+            <h3 className="text-sm font-medium text-slate-400 mb-1">
+              {t('admin.lowStockAlerts')}
+            </h3>
+            <p className="text-3xl font-bold text-slate-100">
+              {stats.lowStockCount}
+            </p>
+            <p className="text-xs text-slate-500 mt-2">
+              Products with stock {'<'} 5
+            </p>
           </div>
-          <h3 className="text-sm font-medium text-slate-400 mb-1">
-            {t('admin.lowStockAlerts')}
-          </h3>
-          <p className="text-3xl font-bold text-slate-100">
-            {stats.lowStockCount}
-          </p>
-          <p className="text-xs text-slate-500 mt-2">
-            Products with stock {'<'} 5
-          </p>
-        </div>
+        </Link>
       </div>
 
       {/* Recent Orders */}

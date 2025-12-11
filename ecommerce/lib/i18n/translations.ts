@@ -17,10 +17,10 @@ export const translations = {
     "common.close": "Close",
     "common.storeName": "E-commerce Store",
     "common.noImage": "No Image",
-    
+
     // Cart
     "cart.quantity": "Qty: ",
-    
+
     // Products
     "products.addToCart": "Add to Cart",
     "products.outOfStock": "Out of Stock",
@@ -33,7 +33,7 @@ export const translations = {
     "products.productTitle": "Title",
     "products.description": "Description",
     "products.noProducts": "No products found",
-    
+
     // Categories
     "categories.electronics": "Electronics",
     "categories.clothing": "Clothing",
@@ -42,7 +42,7 @@ export const translations = {
     "categories.homeKitchen": "Home & Kitchen",
     "categories.bags": "Bags",
     "categories.sports": "Sports",
-    
+
     // Cart
     "cart.title": "Shopping Cart",
     "cart.empty": "Your cart is empty",
@@ -52,7 +52,7 @@ export const translations = {
     "cart.total": "Total",
     "cart.items": "items",
     "cart.item": "item",
-    
+
     // Checkout
     "checkout.title": "Checkout",
     "checkout.shipping": "Shipping Information",
@@ -70,7 +70,7 @@ export const translations = {
     "checkout.submit": "Complete Order",
     "checkout.processing": "Processing...",
     "checkout.orderReference": "Order reference: ",
-    
+
     // Checkout Placeholders
     "checkout.placeholderEmail": "you@example.com",
     "checkout.placeholderName": "John Doe",
@@ -78,7 +78,7 @@ export const translations = {
     "checkout.placeholderCity": "New York",
     "checkout.placeholderPostalCode": "10001",
     "checkout.placeholderCountry": "United States",
-    
+
     // Checkout Validation Errors
     "checkout.emailRequired": "Email is required",
     "checkout.invalidEmail": "Invalid email address",
@@ -90,7 +90,7 @@ export const translations = {
     "checkout.postalCodeRequired": "Postal code is required",
     "checkout.invalidPostalCode": "Postal code must be 4-10 digits",
     "checkout.countryRequired": "Country is required",
-    
+
     // PayPal Payment
     "checkout.continueToPayment": "Continue to Payment",
     "checkout.paymentDetails": "Payment Details",
@@ -102,12 +102,14 @@ export const translations = {
     "checkout.unexpectedError": "An unexpected error occurred. Please try again.",
     "checkout.emptyCart": "Your cart is empty",
     "checkout.continueShopping": "Continue Shopping",
-    
+
     // Admin
     "admin.title": "Admin Panel",
     "admin.dashboard": "Dashboard",
     "admin.products": "Products",
+    "admin.categories": "Categories",
     "admin.orders": "Orders",
+    "admin.branding": "Branding",
     "admin.logout": "Logout",
     "admin.login": "Login",
     "admin.loginSubtitle": "Sign in to access the admin panel",
@@ -126,10 +128,10 @@ export const translations = {
     "admin.comingSoon": "Coming soon",
     "admin.dashboardPlaceholder": "Dashboard Overview",
     "admin.dashboardDescription": "Product and order management features will be available here soon.",
-    
+
     // Footer
     "footer.copyright": "All rights reserved",
-    
+
     // Errors
     "error.insufficientStock": "Insufficient stock",
     "error.paymentFailed": "Payment failed",
@@ -158,10 +160,10 @@ export const translations = {
     "common.close": "Cerrar",
     "common.storeName": "Tienda E-commerce",
     "common.noImage": "Sin Imagen",
-    
+
     // Cart
     "cart.quantity": "Cant: ",
-    
+
     // Products
     "products.addToCart": "Agregar al Carrito",
     "products.outOfStock": "Sin Stock",
@@ -174,7 +176,7 @@ export const translations = {
     "products.productTitle": "Título",
     "products.description": "Descripción",
     "products.noProducts": "No se encontraron productos",
-    
+
     // Categorías
     "categories.electronics": "Electrónica",
     "categories.clothing": "Ropa",
@@ -183,7 +185,7 @@ export const translations = {
     "categories.homeKitchen": "Hogar y Cocina",
     "categories.bags": "Bolsos",
     "categories.sports": "Deportes",
-    
+
     // Cart
     "cart.title": "Carrito de Compras",
     "cart.empty": "Tu carrito está vacío",
@@ -193,7 +195,7 @@ export const translations = {
     "cart.total": "Total",
     "cart.items": "artículos",
     "cart.item": "artículo",
-    
+
     // Checkout
     "checkout.title": "Pago",
     "checkout.shipping": "Información de Envío",
@@ -211,7 +213,7 @@ export const translations = {
     "checkout.submit": "Completar Pedido",
     "checkout.processing": "Procesando...",
     "checkout.orderReference": "Referencia del pedido: ",
-    
+
     // Checkout Placeholders
     "checkout.placeholderEmail": "tu@ejemplo.com",
     "checkout.placeholderName": "Juan Pérez",
@@ -219,7 +221,7 @@ export const translations = {
     "checkout.placeholderCity": "Buenos Aires",
     "checkout.placeholderPostalCode": "10001",
     "checkout.placeholderCountry": "Argentina",
-    
+
     // Checkout Validation Errors
     "checkout.emailRequired": "El correo es requerido",
     "checkout.invalidEmail": "Dirección de correo inválida",
@@ -231,7 +233,7 @@ export const translations = {
     "checkout.postalCodeRequired": "El código postal es requerido",
     "checkout.invalidPostalCode": "El código postal debe tener 4-10 dígitos",
     "checkout.countryRequired": "El país es requerido",
-    
+
     // PayPal Payment
     "checkout.continueToPayment": "Continuar al Pago",
     "checkout.paymentDetails": "Detalles del Pago",
@@ -243,12 +245,14 @@ export const translations = {
     "checkout.unexpectedError": "Ocurrió un error inesperado. Por favor intenta de nuevo.",
     "checkout.emptyCart": "Tu carrito está vacío",
     "checkout.continueShopping": "Continuar Comprando",
-    
+
     // Admin
     "admin.title": "Panel de Administración",
     "admin.dashboard": "Dashboard",
     "admin.products": "Productos",
+    "admin.categories": "Categorías",
     "admin.orders": "Pedidos",
+    "admin.branding": "Marca",
     "admin.logout": "Cerrar Sesión",
     "admin.login": "Iniciar Sesión",
     "admin.loginSubtitle": "Inicia sesión para acceder al panel de administración",
@@ -267,10 +271,10 @@ export const translations = {
     "admin.comingSoon": "Próximamente",
     "admin.dashboardPlaceholder": "Resumen del Dashboard",
     "admin.dashboardDescription": "Las funciones de gestión de productos y pedidos estarán disponibles pronto.",
-    
+
     // Footer
     "footer.copyright": "Todos los derechos reservados",
-    
+
     // Errors
     "error.insufficientStock": "Stock insuficiente",
     "error.paymentFailed": "Pago fallido",
@@ -299,10 +303,10 @@ export const translations = {
     "common.close": "Fechar",
     "common.storeName": "Loja E-commerce",
     "common.noImage": "Sem Imagem",
-    
+
     // Cart
     "cart.quantity": "Qtd: ",
-    
+
     // Products
     "products.addToCart": "Adicionar ao Carrinho",
     "products.outOfStock": "Fora de Estoque",
@@ -315,7 +319,7 @@ export const translations = {
     "products.productTitle": "Título",
     "products.description": "Descrição",
     "products.noProducts": "Nenhum produto encontrado",
-    
+
     // Categorias
     "categories.electronics": "Eletrônicos",
     "categories.clothing": "Roupas",
@@ -324,7 +328,7 @@ export const translations = {
     "categories.homeKitchen": "Casa e Cozinha",
     "categories.bags": "Bolsas",
     "categories.sports": "Esportes",
-    
+
     // Cart
     "cart.title": "Carrinho de Compras",
     "cart.empty": "Seu carrinho está vazio",
@@ -334,7 +338,7 @@ export const translations = {
     "cart.total": "Total",
     "cart.items": "itens",
     "cart.item": "item",
-    
+
     // Checkout
     "checkout.title": "Pagamento",
     "checkout.shipping": "Informação de Envio",
@@ -352,7 +356,7 @@ export const translations = {
     "checkout.submit": "Completar Pedido",
     "checkout.processing": "Processando...",
     "checkout.orderReference": "Referência do pedido: ",
-    
+
     // Checkout Placeholders
     "checkout.placeholderEmail": "voce@exemplo.com",
     "checkout.placeholderName": "João Silva",
@@ -360,7 +364,7 @@ export const translations = {
     "checkout.placeholderCity": "São Paulo",
     "checkout.placeholderPostalCode": "10001",
     "checkout.placeholderCountry": "Brasil",
-    
+
     // Checkout Validation Errors
     "checkout.emailRequired": "E-mail é obrigatório",
     "checkout.invalidEmail": "Endereço de e-mail inválido",
@@ -372,7 +376,7 @@ export const translations = {
     "checkout.postalCodeRequired": "Código postal é obrigatório",
     "checkout.invalidPostalCode": "Código postal deve ter 4-10 dígitos",
     "checkout.countryRequired": "País é obrigatório",
-    
+
     // PayPal Payment
     "checkout.continueToPayment": "Continuar para Pagamento",
     "checkout.paymentDetails": "Detalhes do Pagamento",
@@ -384,12 +388,14 @@ export const translations = {
     "checkout.unexpectedError": "Ocorreu um erro inesperado. Tente novamente.",
     "checkout.emptyCart": "Seu carrinho está vazio",
     "checkout.continueShopping": "Continuar Comprando",
-    
+
     // Admin
     "admin.title": "Painel de Administração",
     "admin.dashboard": "Dashboard",
     "admin.products": "Produtos",
+    "admin.categories": "Categorias",
     "admin.orders": "Pedidos",
+    "admin.branding": "Identidade Visual",
     "admin.logout": "Sair",
     "admin.login": "Entrar",
     "admin.loginSubtitle": "Faça login para acessar o painel de administração",
@@ -408,10 +414,10 @@ export const translations = {
     "admin.comingSoon": "Em breve",
     "admin.dashboardPlaceholder": "Visão Geral do Dashboard",
     "admin.dashboardDescription": "Os recursos de gerenciamento de produtos e pedidos estarão disponíveis em breve.",
-    
+
     // Footer
     "footer.copyright": "Todos os direitos reservados",
-    
+
     // Errors
     "error.insufficientStock": "Estoque insuficiente",
     "error.paymentFailed": "Pagamento falhou",
@@ -421,7 +427,7 @@ export const translations = {
     "error.pageNotFound": "Página Não Encontrada",
     "error.pageNotFoundDetails": "A página que você procura não existe.",
     "common.backHome": "Voltar ao Início",
-    
+
     // Email templates
     "email.orderConfirmed": "Pedido Confirmado",
     "email.orderProcessing": "Processando Pedido",

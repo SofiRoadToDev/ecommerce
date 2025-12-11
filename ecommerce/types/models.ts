@@ -5,8 +5,26 @@ export interface Product {
   description: string | null
   price: number
   image_url: string | null
-  category: string
+  category: string // Deprecated: legacy string category
+  category_id?: string | null // Foreign key to categories table
+  category_data?: Category | null // Joined category data
   stock: number
+}
+
+export interface Category {
+  id: string
+  created_at: string
+  name: string
+  slug: string
+}
+
+export interface Branding {
+  id: string
+  created_at: string
+  brand_name: string
+  logo_url: string | null
+  primary_color: string | null
+  secondary_color: string | null
 }
 
 export interface CartItem {

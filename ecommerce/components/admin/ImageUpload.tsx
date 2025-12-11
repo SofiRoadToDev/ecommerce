@@ -11,6 +11,8 @@ interface ImageUploadProps {
   onImageUploaded: (url: string) => void
   onImageRemoved?: () => void
   className?: string
+  bucketName?: string
+  label?: string
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -20,7 +22,9 @@ export function ImageUpload({
   currentImageUrl,
   onImageUploaded,
   onImageRemoved,
-  className
+  className,
+  bucketName = 'product-images',
+  label = 'Product Image'
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(currentImageUrl || null)
   const [uploading, setUploading] = useState(false)
@@ -82,7 +86,8 @@ export function ImageUpload({
       // Generate unique filename
       const fileExt = file.name.split('.').pop()
       const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
-      const filePath = `product-images/${fileName}`
+      const folder = bucketName === 'branding' ? 'branding' : 'product-images' // Optional path logic
+      const filePath = `${fileName}`
 
       // Simulate progress (Supabase doesn't provide real-time upload progress)
       const progressInterval = setInterval(() => {
@@ -97,7 +102,7 @@ export function ImageUpload({
 
       // Upload to Supabase Storage
       const { data, error: uploadError } = await supabase.storage
-        .from('product-images')
+        .from(bucketName)
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -111,7 +116,7 @@ export function ImageUpload({
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
+        .from(bucketName)
         .getPublicUrl(data.path)
 
       setProgress(100)
@@ -147,7 +152,7 @@ export function ImageUpload({
   return (
     <div className={cn('space-y-2', className)}>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Product Image
+        {label}
       </label>
 
       {/* Upload Area */}
