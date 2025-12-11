@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   Tags,
-  Palette
+  Palette,
+  MapPin
 } from 'lucide-react'
 import { t } from '@/lib/i18n'
 import AdminLogout from '@/components/admin-logout'
@@ -48,6 +49,11 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
       name: t('admin.branding'),
       href: '/admin/branding',
       icon: Palette
+    },
+    {
+      name: 'Datos de Contacto', // Hardcoded por ahora, luego añadir a i18n
+      href: '/admin/contact',
+      icon: MapPin
     },
   ]
 

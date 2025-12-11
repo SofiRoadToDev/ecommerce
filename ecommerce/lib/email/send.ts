@@ -9,6 +9,7 @@ import {
   orderProcessingTemplate,
   orderShippedTemplate,
   orderReadyForPickupTemplate,
+  orderPaymentFailedTemplate,
   OrderEmailData
 } from './templates'
 
@@ -33,7 +34,7 @@ const EMAIL_CONFIG = {
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   try {
     const { subject, html } = orderConfirmedTemplate(data)
-    
+
     const { data: emailData, error } = await resend.emails.send({
       from: `${EMAIL_CONFIG.fromName} <${EMAIL_CONFIG.from}>`,
       to: data.customerEmail,
@@ -51,6 +52,34 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     return emailData
   } catch (error) {
     console.error('Error in sendOrderConfirmationEmail:', error)
+    throw error
+  }
+}
+
+/**
+ * Send order payment failed email
+ */
+export async function sendOrderPaymentFailedEmail(data: OrderEmailData) {
+  try {
+    const { subject, html } = orderPaymentFailedTemplate(data)
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: `${EMAIL_CONFIG.fromName} <${EMAIL_CONFIG.from}>`,
+      to: data.customerEmail,
+      subject,
+      html,
+      reply_to: EMAIL_CONFIG.reply_to
+    })
+
+    if (error) {
+      console.error('Error sending payment failed email:', error)
+      throw new Error(`Failed to send payment failed email: ${error.message}`)
+    }
+
+    console.log('Payment failed email sent:', emailData?.id)
+    return emailData
+  } catch (error) {
+    console.error('Error in sendOrderPaymentFailedEmail:', error)
     throw error
   }
 }

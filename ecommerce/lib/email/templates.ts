@@ -20,12 +20,22 @@ export interface OrderEmailData {
   brandName?: string
   logoUrl?: string
   primaryColor?: string
+  contactEmail?: string
+  contactPhone?: string
+  contactAddress?: string
 }
 
 /**
  * Base email HTML template with consistent styling
  */
-function baseEmailTemplate(content: string, subject: string, branding?: { name?: string, logo?: string, color?: string }): string {
+function baseEmailTemplate(content: string, subject: string, branding?: {
+  name?: string,
+  logo?: string,
+  color?: string,
+  email?: string,
+  phone?: string,
+  address?: string
+}): string {
   const primaryColor = branding?.color || '#2563eb'
   const brandName = branding?.name || 'Your Store'
 
@@ -33,6 +43,19 @@ function baseEmailTemplate(content: string, subject: string, branding?: { name?:
   const headerContent = branding?.logo
     ? `<img src="${branding.logo}" alt="${brandName}" style="max-height: 50px; max-width: 200px; height: auto;">`
     : `<h1>${brandName}</h1>`
+
+  // Contact info for footer
+  const contactParts = []
+  if (branding?.email) contactParts.push(`<a href="mailto:${branding.email}" style="color: ${primaryColor}; text-decoration: none;">${branding.email}</a>`)
+  if (branding?.phone) contactParts.push(`<a href="tel:${branding.phone}" style="color: ${primaryColor}; text-decoration: none;">${branding.phone}</a>`)
+
+  const contactHtml = contactParts.length > 0
+    ? `<p style="margin-top: 16px; font-size: 12px;">Questions? Contact us: ${contactParts.join(' | ')}</p>`
+    : ''
+
+  const addressHtml = branding?.address
+    ? `<p style="margin-top: 8px; font-size: 12px;">${branding.address}</p>`
+    : ''
 
   return `
 <!DOCTYPE html>
@@ -200,6 +223,13 @@ function baseEmailTemplate(content: string, subject: string, branding?: { name?:
       ${headerContent}
     </div>
     ${content}
+    <div class="footer">
+      <p>Thank you for shopping with us!</p>
+      <p>This is an automated email. Please do not reply to this address.</p>
+      ${contactHtml}
+      ${addressHtml}
+      <p style="margin-top: 16px; font-size: 11px;">&copy; ${new Date().getFullYear()} ${brandName}. All rights reserved.</p>
+    </div>
   </div>
 </body>
 </html>
@@ -261,10 +291,6 @@ export function orderConfirmedTemplate(data: OrderEmailData): { subject: string;
       </div>
 
       <p>We'll send you another email when your order ships. If you have any questions, please don't hesitate to contact us.</p>
-    </div>
-    <div class="footer">
-      <p>Thank you for shopping with us!</p>
-      <p>This is an automated email. Please do not reply to this address.</p>
     </div>
   `
 
@@ -423,5 +449,56 @@ export function orderReadyForPickupTemplate(data: OrderEmailData): { subject: st
   return {
     subject,
     html: baseEmailTemplate(content, subject)
+  }
+}
+
+/**
+ * Order payment failed email template
+ */
+export function orderPaymentFailedTemplate(data: OrderEmailData): { subject: string; html: string } {
+  const subject = `Payment Failed - Order #${data.orderId}`
+  const branding = {
+    name: data.brandName,
+    logo: data.logoUrl,
+    color: data.primaryColor,
+    email: data.contactEmail,
+    phone: data.contactPhone,
+    address: data.contactAddress
+  }
+
+  const content = `
+    <div class="content">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="margin: 0; color: #ef4444; font-size: 24px;">Payment Failed</h2>
+      </div>
+
+      <p>Hi ${data.customerName},</p>
+      <p>We encountered an issue processing your payment for order <strong>#${data.orderId}</strong>.</p>
+      
+      <div style="background-color: #fef2f2; color: #991b1b; padding: 12px 16px; border-radius: 6px; margin: 16px 0; font-weight: 500; border: 1px solid #fecaca; text-align: center;">
+        Opéración rechazada
+      </div>
+
+      <p>Please check your payment details and try again, or contact your bank for more information.</p>
+      
+      <div class="order-details">
+        <h3>Order Details</h3>
+        <div class="order-info">
+          <span><strong>Order Number:</strong></span>
+          <span>#${data.orderId}</span>
+        </div>
+        <div class="order-info">
+          <span><strong>Total Amount:</strong></span>
+          <span>$${data.totalAmount.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <p>If you continue to experience issues, please contact our support team using the information below.</p>
+    </div>
+  `
+
+  return {
+    subject,
+    html: baseEmailTemplate(content, subject, branding)
   }
 }

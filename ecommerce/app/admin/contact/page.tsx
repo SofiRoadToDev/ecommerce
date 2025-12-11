@@ -1,0 +1,41 @@
+
+import { createAdminClient } from '@/lib/supabase/admin'
+import ContactForm from '@/components/admin/contact-form'
+import { AlertCircle } from 'lucide-react'
+
+export default async function ContactPage() {
+    const supabase = createAdminClient()
+
+    // Obtener datos de branding (solo hay 1 registro generalmente)
+    // Si no existe, pasamos objeto vacío y el form manejará el insert o upsert
+    let { data: branding, error } = await supabase
+        .from('branding')
+        .select('*')
+        .single()
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 es "no rows returned"
+        console.error('Error fetching branding:', error)
+    }
+
+    return (
+        <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-100">Configuración de Contacto e Identidad</h1>
+                    <p className="text-slate-400 mt-1">Administra la información de contacto y branding de tu tienda.</p>
+                </div>
+            </div>
+
+            {!branding && (
+                <div className="bg-amber-500/10 border border-amber-500/20 text-amber-200 p-4 rounded-lg flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    <p>Aún no has configurado la información de tu marca. Completa el formulario para empezar.</p>
+                </div>
+            )}
+
+            <div className="glass-card p-6">
+                <ContactForm initialData={branding} />
+            </div>
+        </div>
+    )
+}

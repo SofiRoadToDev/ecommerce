@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
         // Fetch branding info
         const { data: branding } = await (supabase
           .from('branding') as any) // Workaround for potential type mismatch
-          .select('brand_name, logo_url, primary_color')
+          .select('brand_name, logo_url, primary_color, contact_email, contact_phone, contact_address')
           .limit(1)
           .single()
 
@@ -207,7 +207,10 @@ export async function POST(request: NextRequest) {
           // Branding (optional)
           brandName: branding?.brand_name || 'Sofia Store', // Fallback name
           logoUrl: branding?.logo_url || undefined,
-          primaryColor: branding?.primary_color || undefined
+          primaryColor: branding?.primary_color || undefined,
+          contactEmail: branding?.contact_email || undefined,
+          contactPhone: branding?.contact_phone || undefined,
+          contactAddress: branding?.contact_address || undefined
         }
 
         await sendOrderConfirmationEmail(emailData)
@@ -221,18 +224,72 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle payment capture denied
+    // Handle payment capture denied
     if (eventType === 'PAYMENT.CAPTURE.DENIED') {
       const orderId = body.resource.supplementary_data?.related_ids?.order_id
-      console.log('Payment denied for order:', orderId)
-      // Since order is in main table, we might want to mark it as cancelled or leave as pending/denied
-      // For now, logging. Implementation depends on desired business logic (e.g. update status to 'cancelled')
+
+      console.log('Payment denied for PayPal Order ID:', orderId)
 
       if (orderId) {
         const supabase = createAdminClient()
-        await supabase
+
+        // 1. Fetch order details to get customer info
+        const { data: order } = await supabase
           .from('orders')
-          .update({ status: 'cancelled' }) // Assuming 'cancelled' is a valid status
+          .select(`*, order_items(*, products(title))`)
           .eq('payment_intent_id', orderId)
+          .single()
+
+        if (order) {
+          console.log('Found order to cancel:', order.id)
+
+          // 2. Update status to cancelled
+          await supabase
+            .from('orders')
+            .update({ status: 'cancelled' })
+            .eq('id', order.id)
+
+          // 3. Send Failed Email
+          try {
+            console.log('Sending payment failed email...')
+            const { sendOrderPaymentFailedEmail } = await import('@/lib/email/send')
+
+            // Fetch branding info
+            const { data: branding } = await (supabase
+              .from('branding') as any)
+              .select('brand_name, logo_url, primary_color, contact_email, contact_phone, contact_address')
+              .limit(1)
+              .single()
+
+            const emailData = {
+              orderId: order.id,
+              customerName: order.customer_name,
+              customerEmail: order.customer_email,
+              totalAmount: Number(order.total_amount),
+              status: 'cancelled',
+              items: Array.isArray(order.order_items) ? order.order_items.map((item: any) => ({
+                title: item.products?.title || 'Product',
+                quantity: item.quantity,
+                price: item.price_at_purchase
+              })) : [],
+              // Branding
+              brandName: branding?.brand_name || 'Sofia Store',
+              logoUrl: branding?.logo_url || undefined,
+              primaryColor: branding?.primary_color || undefined,
+              contactEmail: branding?.contact_email || undefined,
+              contactPhone: branding?.contact_phone || undefined,
+              contactAddress: branding?.contact_address || undefined
+            }
+
+            await sendOrderPaymentFailedEmail(emailData)
+            console.log('❌ Payment failed email sent to:', order.customer_email)
+
+          } catch (error) {
+            console.error('Error sending failed payment email:', error)
+          }
+        } else {
+          console.warn('Order not found for cancellation:', orderId)
+        }
       }
 
       return NextResponse.json({ received: true })

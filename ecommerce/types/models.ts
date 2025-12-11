@@ -25,6 +25,9 @@ export interface Branding {
   logo_url: string | null
   primary_color: string | null
   secondary_color: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  contact_address: string | null
 }
 
 export interface CartItem {
