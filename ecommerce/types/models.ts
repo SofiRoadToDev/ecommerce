@@ -69,25 +69,3 @@ export interface OrderWithDetails extends Order {
   })[]
 }
 
-export interface PendingOrder {
-  id: string
-  created_at: string
-  paypal_order_id: string
-  order_items: Array<{
-    id: string
-    title: string
-    quantity: number
-    price: number
-  }>
-  total_amount: number
-  customer_name: string | null
-  customer_email: string | null
-  customer_address: {
-    name: string
-    email: string
-    address: string
-    city: string
-    postalCode: string
-    country: string
-  } | null
-}

@@ -97,32 +97,55 @@ export async function POST(request: NextRequest) {
     // 4. Create PayPal Order
     const order = await createPayPalOrder(total, 'USD')
 
-    // Store order items and customer data in temporary table for webhook processing
-    const pendingOrder: Database['public']['Tables']['pending_orders']['Insert'] = {
-      paypal_order_id: order.id,
-      order_items: orderItems,
-      total_amount: total,
-      customer_name: customer.name,
+    // Create order directly in database with 'pending' status
+    // Store PayPal Order ID in payment_intent_id for later retrieval via webhook
+    const newOrder = {
       customer_email: customer.email,
-      customer_address: customer,
+      customer_name: customer.name,
+      shipping_address: customer,
+      total_amount: total,
+      status: 'pending',
+      payment_intent_id: order.id,
     }
 
-    // Workaround: Supabase types not recognizing pending_orders after upgrade (see bugs_to_fix.md)
-    const { error: storeError } = await (supabase
-      .from('pending_orders') as any)
-      .insert(pendingOrder)
+    const { data: createdOrder, error: paramsError } = await supabase
+      .from('orders')
+      .insert(newOrder)
+      .select()
+      .single()
 
-    if (storeError) {
-      console.error('CRITICAL: Failed to store pending order:', storeError)
-      console.error('PayPal Order ID:', order.id)
-      console.error('Pending order data:', pendingOrder)
+    if (paramsError || !createdOrder) {
+      console.error('Failed to create order:', paramsError)
       return NextResponse.json(
-        { error: 'Failed to store order data. Please try again.' },
+        { error: 'Failed to create order' },
         { status: 500 }
       )
     }
 
-    console.log('✅ Pending order stored successfully:', order.id)
+    // Create order items
+    const orderItemsData = orderItems.map(item => ({
+      order_id: createdOrder.id,
+      product_id: item.id,
+      quantity: item.quantity,
+      price_at_purchase: item.price,
+    }))
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItemsData)
+
+    if (itemsError) {
+      console.error('Failed to create order items:', itemsError)
+      // Rollback order creation if items fail (optional but recommended)
+      await supabase.from('orders').delete().eq('id', createdOrder.id)
+
+      return NextResponse.json(
+        { error: 'Failed to create order items' },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ Order created successfully:', createdOrder.id, 'PayPal ID:', order.id)
 
     // 5. Return order ID to client
     return NextResponse.json({
