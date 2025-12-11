@@ -14,7 +14,7 @@ export default async function AdminLayout({
   if (!user) {
     // For login page, don't show the navigation
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-slate-950">
         {children}
       </div>
     )

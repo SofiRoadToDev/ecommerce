@@ -1,10 +1,11 @@
 import { getUser } from '@/lib/supabase/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { t } from '@/lib/i18n'
-import { Package, ShoppingCart, DollarSign, AlertCircle, Clock } from 'lucide-react'
+import { Package, ShoppingCart, DollarSign, AlertCircle, Clock, TrendingUp, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 import { Order } from '@/types/models'
 import AdminUserInfo from '@/components/admin-user-info'
+import SlowMoversAccordion from '@/components/slow-movers-accordion'
 
 interface DashboardStats {
   totalSales: number
@@ -20,6 +21,13 @@ interface RecentOrder {
   customer_email: string
   total_amount: number
   status: Order['status']
+}
+
+interface ProductSalesData {
+  product_id: string
+  product_title: string
+  total_quantity: number
+  total_revenue: number
 }
 
 async function getDashboardStats(): Promise<DashboardStats> {
@@ -76,10 +84,115 @@ async function getRecentOrders(): Promise<RecentOrder[]> {
   })) as RecentOrder[]
 }
 
+async function getTopSellingProducts(): Promise<ProductSalesData[]> {
+  const supabase = createAdminClient()
+
+  // Get order items with product info, grouped by product
+  const { data: orderItems } = await supabase
+    .from('order_items')
+    .select(`
+      product_id,
+      quantity,
+      price_at_purchase,
+      products (
+        title
+      )
+    `)
+
+  if (!orderItems) return []
+
+  // Group by product and calculate totals
+  const productMap = new Map<string, ProductSalesData>()
+
+  orderItems.forEach((item: any) => {
+    const productId = item.product_id
+    const productTitle = item.products?.title || 'Unknown Product'
+    const quantity = item.quantity || 0
+    const revenue = quantity * (item.price_at_purchase || 0)
+
+    if (productMap.has(productId)) {
+      const existing = productMap.get(productId)!
+      existing.total_quantity += quantity
+      existing.total_revenue += revenue
+    } else {
+      productMap.set(productId, {
+        product_id: productId,
+        product_title: productTitle,
+        total_quantity: quantity,
+        total_revenue: revenue
+      })
+    }
+  })
+
+  // Convert to array and sort by quantity (descending)
+  return Array.from(productMap.values())
+    .sort((a, b) => b.total_quantity - a.total_quantity)
+    .slice(0, 3)
+}
+
+async function getSlowMovingProducts(): Promise<ProductSalesData[]> {
+  const supabase = createAdminClient()
+
+  // Get all products
+  const { data: allProducts } = await supabase
+    .from('products')
+    .select('id, title')
+
+  if (!allProducts) return []
+
+  // Get order items with product info
+  const { data: orderItems } = await supabase
+    .from('order_items')
+    .select(`
+      product_id,
+      quantity,
+      price_at_purchase
+    `)
+
+  // Create a map of product sales
+  const productSalesMap = new Map<string, { quantity: number; revenue: number }>()
+
+  // Initialize all products with 0 sales
+  allProducts.forEach((product: any) => {
+    productSalesMap.set(product.id, { quantity: 0, revenue: 0 })
+  })
+
+  // Update with actual sales data
+  if (orderItems) {
+    orderItems.forEach((item: any) => {
+      const productId = item.product_id
+      const quantity = item.quantity || 0
+      const revenue = quantity * (item.price_at_purchase || 0)
+
+      if (productSalesMap.has(productId)) {
+        const existing = productSalesMap.get(productId)!
+        existing.quantity += quantity
+        existing.revenue += revenue
+      }
+    })
+  }
+
+  // Convert to ProductSalesData array
+  const productsWithSales: ProductSalesData[] = allProducts.map((product: any) => {
+    const sales = productSalesMap.get(product.id) || { quantity: 0, revenue: 0 }
+    return {
+      product_id: product.id,
+      product_title: product.title,
+      total_quantity: sales.quantity,
+      total_revenue: sales.revenue
+    }
+  })
+
+  // Sort by quantity (ascending) - products with 0 sales first, then least sold
+  return productsWithSales.sort((a, b) => a.total_quantity - b.total_quantity)
+}
+
 export default async function AdminDashboardPage() {
   const user = await getUser()
   const stats = await getDashboardStats()
   const recentOrders = await getRecentOrders()
+  const topSellingProducts = await getTopSellingProducts()
+  const slowMovingProducts = await getSlowMovingProducts()
 
   return (
     <div>
@@ -184,6 +297,95 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
+      {/* Product Sales Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Top Selling Products */}
+        <div className="glass-card p-0 overflow-hidden">
+          <div className="p-6 border-b border-white/10 flex items-center justify-between bg-emerald-500/5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-100">
+                Top Sellers
+              </h2>
+            </div>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              Best 3
+            </span>
+          </div>
+
+          {topSellingProducts.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="inline-flex p-4 rounded-full bg-slate-800/50 mb-4">
+                <Package className="w-8 h-8 text-slate-600" />
+              </div>
+              <p className="text-slate-400">No sales data available</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {topSellingProducts.map((product, index) => (
+                <div key={product.product_id} className="p-6 hover:bg-white/5 transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
+                        <span className="text-lg font-bold text-emerald-400">
+                          {index + 1}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-slate-100 truncate group-hover:text-emerald-400 transition-colors">
+                        {product.product_title}
+                      </h3>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs text-slate-400">
+                          {product.total_quantity} sold
+                        </span>
+                        <span className="text-xs text-slate-600">•</span>
+                        <span className="text-xs font-medium text-emerald-400">
+                          ${product.total_revenue.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <div className="h-2 w-20 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+                          style={{
+                            width: `${Math.min(100, (product.total_quantity / (topSellingProducts[0]?.total_quantity || 1)) * 100)}%`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+
+        {/* Slow Moving Products */}
+        <div className="glass-card p-0 overflow-hidden">
+          <div className="p-6 border-b border-white/10 flex items-center justify-between bg-amber-500/5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-500/10 rounded-lg">
+                <TrendingDown className="w-5 h-5 text-amber-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-100">
+                Slow Movers
+              </h2>
+            </div>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">
+              {slowMovingProducts.length} total
+            </span>
+          </div>
+
+          <SlowMoversAccordion products={slowMovingProducts} />
+        </div>
+      </div>
+
       {/* Recent Orders */}
       <div className="glass-card p-0 overflow-hidden">
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
@@ -262,6 +464,8 @@ export default async function AdminDashboardPage() {
           </div>
         )}
       </div>
+
+
     </div>
   )
 }

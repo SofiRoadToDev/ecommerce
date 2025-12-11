@@ -74,15 +74,15 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+        <div className="glass-card border border-white/10">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-indigo-400 mb-2">
               {t('admin.title')}
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-400">
               {t('admin.loginSubtitle')}
             </p>
           </div>
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
             />
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-sm text-red-400">
                 {error}
               </div>
             )}
