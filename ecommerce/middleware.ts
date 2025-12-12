@@ -33,6 +33,15 @@ const loginRateLimit = redis
   })
   : null
 
+const registerRateLimit = redis
+  ? new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '1 h'), // 5 attempts per hour
+    analytics: true,
+    prefix: 'ratelimit:register:v2',
+  })
+  : null
+
 const checkoutRateLimit = redis
   ? new Ratelimit({
     redis,
@@ -60,13 +69,36 @@ const contactRateLimit = redis
   })
   : null
 
-async function checkRateLimit(ip: string, path: string): Promise<NextResponse | null> {
+async function checkRateLimit(ip: string, path: string, method: string): Promise<NextResponse | null> {
   if (!redis) {
     // Rate limiting disabled in development
     return null
   }
 
   try {
+    // Register endpoint - Prevent spam (only limit POST requests)
+    if (path === '/admin/register' && registerRateLimit && method === 'POST') {
+      const { success, limit, reset, remaining } = await registerRateLimit.limit(ip)
+
+      if (!success) {
+        const minutesUntilReset = Math.ceil((new Date(reset).getTime() - Date.now()) / 60000)
+
+        return NextResponse.json(
+          {
+            error: `Too many registration attempts. Please wait ${minutesUntilReset} minutes.`,
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            }
+          }
+        )
+      }
+    }
+
     // Login endpoint - Prevent brute force
     if (path === '/admin/login' && loginRateLimit) {
       const { success, limit, reset, remaining } = await loginRateLimit.limit(ip)
@@ -169,7 +201,7 @@ export async function middleware(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1'
 
   // Check rate limiting first (applies to all routes)
-  const rateLimitResponse = await checkRateLimit(ip, pathname)
+  const rateLimitResponse = await checkRateLimit(ip, pathname, request.method)
   if (rateLimitResponse) {
     return rateLimitResponse
   }

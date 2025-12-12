@@ -22,7 +22,7 @@ Prioridad ALTA (1-2 semanas):
 ⚠️ Política de privacidad y términos (legal básico)
 ⚠️ Backup de base de datos automatizado
 ⚠️ Monitoreo básico (Vercel Analytics o Google Analytics)
-⚠️ Recuperación de contraseña
+✅ Recuperación de contraseña
 ✅ Slugs + URLs amigables para productos
 
 
