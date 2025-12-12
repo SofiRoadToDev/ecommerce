@@ -214,17 +214,18 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const role = user?.user_metadata?.role || user?.app_metadata?.role
 
-  const isAdminLoginPath = pathname === '/admin/login'
+  const publicAdminRoutes = ['/admin/login', '/admin/register', '/admin/forgot-password', '/admin/update-password']
+  const isPublicAdminRoute = publicAdminRoutes.includes(pathname)
 
-  // Si está en login y ya es admin, redirige al dashboard
-  if (isAdminLoginPath) {
+  // Si está en una ruta pública de admin y ya es admin, redirige al dashboard
+  if (isPublicAdminRoute) {
     if (user && role === 'admin') {
       return NextResponse.redirect(new URL('/admin/dashboard', request.url))
     }
     return response
   }
 
-  // Protección de rutas admin
+  // Protección de rutas admin privadas
   if (!user) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }

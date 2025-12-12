@@ -1,16 +1,17 @@
-
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { t } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 // Login de admin usando Supabase Auth
 export default function AdminLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -87,6 +88,12 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
+          {searchParams.get('registered') === 'true' && (
+            <div className="mb-6 bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-sm text-green-400 text-center">
+              Administrador registrado correctamente. Inicia sesión.
+            </div>
+          )}
+
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
@@ -127,6 +134,23 @@ export default function AdminLoginPage() {
             >
               {loading ? t('admin.loggingIn') : t('admin.login')}
             </Button>
+
+            <div className="flex flex-col gap-2 text-center mt-4">
+              <Link
+                href="/admin/forgot-password"
+                className="text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+
+              <Link
+                href="/admin/register"
+                className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                title="Solo disponible si no existe ningún administrador"
+              >
+                configuración inicial
+              </Link>
+            </div>
           </form>
         </div>
       </div>
