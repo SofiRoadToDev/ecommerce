@@ -9,10 +9,10 @@ export const dynamic = 'force-dynamic'
 async function getPendingOrders(): Promise<PendingOrder[]> {
     const supabase = createAdminClient()
 
-    // Workaround: Supabase types issue (see bugs_to_fix.md)
-    const { data, error } = await (supabase
-        .from('pending_orders') as any)
+    const { data, error } = await supabase
+        .from('orders')
         .select('*')
+        .eq('status', 'pending')
         .order('created_at', { ascending: false })
 
     if (error) {
@@ -20,7 +20,7 @@ async function getPendingOrders(): Promise<PendingOrder[]> {
         return []
     }
 
-    return data || []
+    return (data || []) as unknown as PendingOrder[]
 }
 
 export default async function PendingOrdersPage() {

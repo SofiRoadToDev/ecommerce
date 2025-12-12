@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import ContactForm from '@/components/admin/contact-form'
 import { AlertCircle } from 'lucide-react'
 import { t } from '@/lib/i18n'
+import type { Branding } from '@/types/models'
 
 export default async function ContactPage() {
     const supabase = createAdminClient()
@@ -35,7 +36,7 @@ export default async function ContactPage() {
             )}
 
             <div className="glass-card p-6">
-                <ContactForm initialData={branding} />
+                <ContactForm initialData={branding as Branding | null} />
             </div>
         </div>
     )

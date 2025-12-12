@@ -5,9 +5,9 @@ import { CategoryFormClient } from '@/components/admin/CategoryFormClient'
 import type { Category } from '@/types/models'
 
 interface EditCategoryPageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 async function getCategory(id: string): Promise<Category | null> {
@@ -32,7 +32,8 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
         redirect('/admin/login')
     }
 
-    const category = await getCategory(params.id)
+    const { id } = await params
+    const category = await getCategory(id)
 
     if (!category) {
         redirect('/admin/categories')

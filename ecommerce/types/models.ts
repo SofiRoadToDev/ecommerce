@@ -72,3 +72,5 @@ export interface OrderWithDetails extends Order {
   })[]
 }
 
+export type PendingOrder = Order
+

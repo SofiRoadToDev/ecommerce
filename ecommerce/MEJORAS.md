@@ -2,7 +2,7 @@
 ⚠️ Testing: No hay tests (unit, integration, e2e)
 ⚠️ Error handling: Algunos try-catch podrían ser más específicos
 ⚠️ Logging: Console.log en producción (usar servicio como Sentry)
-⚠️ Rate limiting: No hay protección contra spam/abuse
+✅ Rate limiting: No hay protección contra spam/abuse
 ⚠️ Optimización de imágenes: Falta Next.js Image optimization configurado
 ⚠️ SEO: Faltan meta tags dinámicos por producto
 ⚠️ Caché: No hay estrategia de caché (Redis, ISR)

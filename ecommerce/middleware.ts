@@ -1,8 +1,148 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
+
+/**
+ * Combined Middleware: Authentication + Rate Limiting
+ * 
+ * Rate Limiting Setup:
+ * 1. Create free account at https://upstash.com
+ * 2. Create a Redis database
+ * 3. Add credentials to .env.local:
+ *    UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+ *    UPSTASH_REDIS_REST_TOKEN=AXXXxxx
+ */
+
+// Initialize Redis client (only if credentials are available)
+const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  ? new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  })
+  : null
+
+// Rate limiters for different endpoints
+const loginRateLimit = redis
+  ? new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '15 m'), // 5 attempts per 15 minutes
+    analytics: true,
+    prefix: 'ratelimit:login',
+  })
+  : null
+
+const checkoutRateLimit = redis
+  ? new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '10 m'), // 3 orders per 10 minutes
+    analytics: true,
+    prefix: 'ratelimit:checkout',
+  })
+  : null
+
+const apiRateLimit = redis
+  ? new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(100, '1 m'), // 100 requests per minute
+    analytics: true,
+    prefix: 'ratelimit:api',
+  })
+  : null
+
+async function checkRateLimit(ip: string, path: string): Promise<NextResponse | null> {
+  if (!redis) {
+    // Rate limiting disabled in development
+    return null
+  }
+
+  try {
+    // Login endpoint - Prevent brute force
+    if (path === '/admin/login' && loginRateLimit) {
+      const { success, limit, reset, remaining } = await loginRateLimit.limit(ip)
+
+      if (!success) {
+        const minutesUntilReset = Math.ceil((new Date(reset).getTime() - Date.now()) / 60000)
+
+        return NextResponse.json(
+          {
+            error: `Too many login attempts. Please try again in ${minutesUntilReset} minutes.`,
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            }
+          }
+        )
+      }
+    }
+
+    // Checkout endpoint - Prevent spam orders
+    if (path === '/api/create-paypal-order' && checkoutRateLimit) {
+      const { success, limit, reset, remaining } = await checkoutRateLimit.limit(ip)
+
+      if (!success) {
+        const minutesUntilReset = Math.ceil((new Date(reset).getTime() - Date.now()) / 60000)
+
+        return NextResponse.json(
+          {
+            error: `Too many order attempts. Please wait ${minutesUntilReset} minutes.`,
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            }
+          }
+        )
+      }
+    }
+
+    // General API rate limiting (except webhooks)
+    if (path.startsWith('/api/') && !path.startsWith('/api/webhooks/') && apiRateLimit) {
+      const { success, limit, reset, remaining } = await apiRateLimit.limit(ip)
+
+      if (!success) {
+        return NextResponse.json(
+          {
+            error: 'Too many requests. Please slow down.',
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            }
+          }
+        )
+      }
+    }
+
+    return null // No rate limit hit
+  } catch (error) {
+    console.error('Rate limiting error:', error)
+    return null // Allow request if rate limiting fails
+  }
+}
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? '127.0.0.1'
+
+  // Check rate limiting first (applies to all routes)
+  const rateLimitResponse = await checkRateLimit(ip, pathname)
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
+  // Continue with existing Supabase auth logic
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -33,7 +173,6 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const pathname = request.nextUrl.pathname
   const isAdminPath = pathname.startsWith('/admin')
 
   // Solo ejecutamos lógica de auth en rutas de admin para optimizar
@@ -66,5 +205,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/:path*',
+  ],
 }
