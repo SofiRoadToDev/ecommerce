@@ -1,14 +1,13 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { t } from '@/lib/i18n'
 import { formatPrice, cn } from '@/lib/utils'
 import { useCartStore } from '@/store/cartStore'
 import type { Product } from '@/types/models'
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
@@ -17,9 +16,9 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore(state => state.addItem)
   const isOutOfStock = product.stock === 0
-  const [isExpanded, setIsExpanded] = useState(false)
 
   const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation when clicking button
     e.stopPropagation()
     if (!isOutOfStock) {
       addItem(product)
@@ -27,10 +26,13 @@ export function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <div className={cn(
-      "group relative bg-white rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-100",
-      isOutOfStock && "opacity-60"
-    )}>
+    <Link
+      href={`/products/${product.slug}`}
+      className={cn(
+        "group relative bg-white rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-100 block",
+        isOutOfStock && "opacity-60"
+      )}
+    >
       {/* Image container */}
       <div className="aspect-[4/5] relative overflow-hidden rounded-xl mb-4 bg-gray-50">
         {product.image_url ? (
@@ -88,32 +90,18 @@ export function ProductCard({ product }: ProductCardProps) {
           </Button>
         </div>
 
-        {/* Description Accordion */}
+        {/* Description preview - shows on hover */}
         {product.description && (
           <div className="pt-3 border-t border-gray-100">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full flex items-center justify-between text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <span className="font-medium">Details</span>
-              <ChevronDown 
-                className={cn(
-                  "w-4 h-4 transition-transform duration-200",
-                  isExpanded && "rotate-180"
-                )} 
-              />
-            </button>
-            <div className={cn(
-              "overflow-hidden transition-all duration-300 ease-in-out",
-              isExpanded ? "max-h-32 pt-2" : "max-h-0"
-            )}>
-              <p className="text-sm text-gray-600 line-clamp-3">
-                {product.description}
-              </p>
-            </div>
+            <p className="text-sm text-gray-600 line-clamp-2">
+              {product.description}
+            </p>
+            <span className="text-xs text-blue-600 font-medium mt-1 inline-block">
+              View details →
+            </span>
           </div>
         )}
       </div>
-    </div>
+    </Link>
   )
 }
