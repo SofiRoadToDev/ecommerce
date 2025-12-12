@@ -2,7 +2,10 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Product } from '@/types/models'
 import { Metadata } from 'next'
-import ProductDetailClient from '@/components/public/ProductDetailClient'
+import ProductDetailClient from '../../../../components/public/ProductDetailClient'
+
+// ISR: Revalidate every hour
+export const revalidate = 3600
 
 interface ProductPageProps {
     params: Promise<{
