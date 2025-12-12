@@ -51,6 +51,15 @@ const apiRateLimit = redis
   })
   : null
 
+const contactRateLimit = redis
+  ? new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, '15 m'), // 3 contact submissions per 15 minutes
+    analytics: true,
+    prefix: 'ratelimit:contact',
+  })
+  : null
+
 async function checkRateLimit(ip: string, path: string): Promise<NextResponse | null> {
   if (!redis) {
     // Rate limiting disabled in development
@@ -91,6 +100,29 @@ async function checkRateLimit(ip: string, path: string): Promise<NextResponse | 
         return NextResponse.json(
           {
             error: `Too many order attempts. Please wait ${minutesUntilReset} minutes.`,
+          },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+            }
+          }
+        )
+      }
+    }
+
+    // Contact form - Prevent spam
+    if (path === '/api/contact' && contactRateLimit) {
+      const { success, limit, reset, remaining } = await contactRateLimit.limit(ip)
+
+      if (!success) {
+        const minutesUntilReset = Math.ceil((new Date(reset).getTime() - Date.now()) / 60000)
+
+        return NextResponse.json(
+          {
+            error: `Too many contact submissions. Please wait ${minutesUntilReset} minutes.`,
           },
           {
             status: 429,

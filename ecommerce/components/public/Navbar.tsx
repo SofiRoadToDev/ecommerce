@@ -52,19 +52,29 @@ export function Navbar() {
               <span>{branding?.brand_name || t('common.storeName')}</span>
             </Link>
 
-            {/* Cart Button */}
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-              aria-label="Open cart"
-            >
-              <ShoppingCart className="w-6 h-6" />
-              {mounted && itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                  {itemCount}
-                </span>
-              )}
-            </button>
+            {/* Navigation Links */}
+            <div className="flex items-center gap-6">
+              <Link
+                href="/contact"
+                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+              >
+                Contact
+              </Link>
+
+              {/* Cart Button */}
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                aria-label="Open cart"
+              >
+                <ShoppingCart className="w-6 h-6" />
+                {mounted && itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    {itemCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </nav>

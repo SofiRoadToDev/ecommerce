@@ -23,6 +23,7 @@ export default function ContactForm({ initialData }: ContactFormProps) {
         contact_email: initialData?.contact_email || '',
         contact_phone: initialData?.contact_phone || '',
         contact_address: initialData?.contact_address || '',
+        google_maps_embed: initialData?.google_maps_embed || '',
     })
 
     const supabase = createClient()
@@ -139,6 +140,24 @@ export default function ContactForm({ initialData }: ContactFormProps) {
                             placeholder="Av. Siempre Viva 123, Springfield"
                             className="w-full bg-slate-950/50 border border-white/10 rounded-lg px-4 py-3 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
                         />
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 space-y-2">
+                        <label htmlFor="google_maps_embed" className="text-sm text-slate-400 flex items-center gap-2">
+                            <MapPin className="w-4 h-4" /> Google Maps Embed URL
+                        </label>
+                        <input
+                            type="text"
+                            id="google_maps_embed"
+                            name="google_maps_embed"
+                            value={formData.google_maps_embed}
+                            onChange={handleChange}
+                            placeholder="https://www.google.com/maps/embed?pb=..."
+                            className="w-full bg-slate-950/50 border border-white/10 rounded-lg px-4 py-3 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                        />
+                        <p className="text-xs text-slate-500">
+                            Go to Google Maps → Share → Embed a map → Copy the src URL from the iframe
+                        </p>
                     </div>
                 </div>
             </div>

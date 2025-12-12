@@ -29,6 +29,7 @@ export interface Branding {
   contact_email: string | null
   contact_phone: string | null
   contact_address: string | null
+  google_maps_embed: string | null
 }
 
 export interface CartItem {
