@@ -46,7 +46,7 @@ async function getDashboardStats(): Promise<DashboardStats> {
   const { count: pendingCount } = await supabase
     .from('orders')
     .select('*', { count: 'exact', head: true })
-    .in('status', ['paid', 'processing'])
+    .eq('status', 'pending')
 
   // Get total products count
   const { count: productsCount } = await supabase

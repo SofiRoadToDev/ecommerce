@@ -44,14 +44,28 @@ export function PaymentForm({ orderId, amount }: PaymentFormProps) {
             createOrder={() => Promise.resolve(orderId)}
             onApprove={async (data, actions) => {
               try {
-                // Capture the order
-                if (actions.order) {
-                  await actions.order.capture()
+                // Server-side capture
+                const response = await fetch('/api/capture-paypal-order', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    orderID: data.orderID
+                  }),
+                })
+
+                const result = await response.json()
+
+                if (!response.ok) {
+                  throw new Error(result.error || t('checkout.paymentFailed'))
                 }
+
                 // Payment succeeded - clear cart and redirect
                 clearCart()
                 router.push('/checkout/success')
               } catch (err) {
+                console.error('Capture error:', err)
                 setError(err instanceof Error ? err.message : t('checkout.unexpectedError'))
               }
             }}

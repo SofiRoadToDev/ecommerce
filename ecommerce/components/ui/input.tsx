@@ -16,7 +16,7 @@ export function Input({ label, error, className, id, name, ...props }: InputProp
     <div className="space-y-1">
       <label
         htmlFor={inputId}
-        className="block text-sm font-medium text-slate-300 mb-1"
+        className="block text-sm font-medium text-slate-700 mb-1"
 
       >
         {label}

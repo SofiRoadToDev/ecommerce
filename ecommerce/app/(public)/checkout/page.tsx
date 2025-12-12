@@ -146,6 +146,7 @@ export default function CheckoutPage() {
                     <Input
                       label={t('checkout.email')}
                       type="email"
+                      className="bg-white text-slate-800"
                       placeholder={t('checkout.placeholderEmail')}
                       error={errors.email?.message}
                       {...register('email')}
@@ -154,6 +155,7 @@ export default function CheckoutPage() {
                     <Input
                       label={t('checkout.name')}
                       type="text"
+                      className="bg-white text-slate-800"
                       placeholder={t('checkout.placeholderName')}
                       error={errors.name?.message}
                       {...register('name')}
@@ -162,6 +164,7 @@ export default function CheckoutPage() {
                     <Input
                       label={t('checkout.address')}
                       type="text"
+                      className="bg-white text-slate-800"
                       placeholder={t('checkout.placeholderAddress')}
                       error={errors.address?.message}
                       {...register('address')}
@@ -171,6 +174,7 @@ export default function CheckoutPage() {
                       <Input
                         label={t('checkout.city')}
                         type="text"
+                        className="bg-white text-slate-800"
                         placeholder={t('checkout.placeholderCity')}
                         error={errors.city?.message}
                         {...register('city')}
@@ -179,6 +183,7 @@ export default function CheckoutPage() {
                       <Input
                         label={t('checkout.postalCode')}
                         type="text"
+                        className="bg-white text-slate-800"
                         placeholder={t('checkout.placeholderPostalCode')}
                         error={errors.postalCode?.message}
                         {...register('postalCode')}
@@ -188,6 +193,7 @@ export default function CheckoutPage() {
                     <Input
                       label={t('checkout.country')}
                       type="text"
+                      className="bg-white text-slate-800"
                       placeholder={t('checkout.placeholderCountry')}
                       error={errors.country?.message}
                       {...register('country')}
@@ -203,7 +209,7 @@ export default function CheckoutPage() {
                       type="submit"
                       variant="primary"
                       size="lg"
-                      className="w-full mt-6"
+                      className="rounded-md w-full bg-slate-900 hover:bg-slate-800 text-white px-5 transition-transform active:scale-95"
                       disabled={isLoadingOrder}
                     >
                       {isLoadingOrder ? t('checkout.processing') : t('checkout.continueToPayment')}
@@ -216,50 +222,50 @@ export default function CheckoutPage() {
               )}
             </div>
 
-          {/* Right: Order Summary */}
-          <div>
-            <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-4">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                {t('checkout.orderSummary')}
-              </h2>
+            {/* Right: Order Summary */}
+            <div>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 sticky top-4">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                  {t('checkout.orderSummary')}
+                </h2>
 
-              <div className="space-y-4 mb-6">
-                {items.map((item) => (
-                  <div key={item.id} className="flex gap-4">
-                    {item.image_url && (
-                      <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                        <Image
-                          src={item.image_url}
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                          sizes="64px"
-                        />
+                <div className="space-y-4 mb-6">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex gap-4">
+                      {item.image_url && (
+                        <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                          <Image
+                            src={item.image_url}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {t('cart.quantity')}{item.quantity} × {formatPrice(item.price)}
+                        </p>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
-                        {item.title}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {t('cart.quantity')}{item.quantity} × {formatPrice(item.price)}
-                      </p>
+                      <div className="text-sm font-medium text-gray-900">
+                        {formatPrice(item.price * item.quantity)}
+                      </div>
                     </div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatPrice(item.price * item.quantity)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center justify-between text-lg font-semibold">
-                  <span>{t('cart.total')}</span>
-                  <span>{formatPrice(total)}</span>
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex items-center justify-between text-lg font-semibold">
+                    <span>{t('cart.total')}</span>
+                    <span>{formatPrice(total)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           </div>
         </div>
       </div>

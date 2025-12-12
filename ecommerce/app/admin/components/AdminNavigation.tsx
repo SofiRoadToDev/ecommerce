@@ -51,7 +51,7 @@ export default function AdminNavigation({ children }: AdminNavigationProps) {
       icon: Palette
     },
     {
-      name: 'Datos de Contacto', // Hardcoded por ahora, luego añadir a i18n
+      name: t('admin.contact'),
       href: '/admin/contact',
       icon: MapPin
     },
